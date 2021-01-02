@@ -5,6 +5,7 @@ class CellularAutomata
     constructor()
     {
         this.grid = new Grid();
+        this.generation = 0;
         this.ruleset = [ConwayGOL];
     }
 
@@ -51,6 +52,7 @@ class CellularAutomata
 
         this.grid.setNewMap(nMap);
         this.grid.pruneDefaultValues();
+        this.generation++;
     }
 
     // custom list.includes bc std includes won't compare vectors correctly 

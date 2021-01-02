@@ -1,23 +1,24 @@
 // stores info about the user's position in grid/screen space
 class Viewer
 {
-    constructor(pos, zoom, cs, lerpFactor)
+    constructor(init_pos, init_zoom, init_windowSize, init_lerpFactor, init_maxZoom, init_minZoom)
     {
         // data
-        this.pos = pos;
-        this.targetPos = pos.copy();
+        this.pos = new Vector(0, 0); // move to input pos instantly 
+        this.targetPos = this.pos.copy();
 
-        this.zoom = zoom;
-        this.targetZoom = zoom;
-
-        this.canvasSize = cs;
+        this.zoom = init_zoom;
+        this.maxZoom = init_maxZoom;
+        this.minZoom = init_minZoom;
+        this.windowSize = init_windowSize;
 
         // config
-        this.lerpFactor = lerpFactor;
-        this.cellSize = defaultCellSize * zoom;
+        this.lerpFactor = init_lerpFactor;
+        this.defaultCellSize = 10;
+        this.cellSize = this.defaultCellSize * this.zoom;
         
         // state tracking
-        this.needDraw = false;
+        this.needDraw = false; // move this into user input
         this.drawing = false;
         this.step = false;
         this.paused = false;
@@ -26,6 +27,8 @@ class Viewer
         this.newCoords = new NSet();
         this.coordsInLine = new NSet();
         this.mousePos = new Vector(0, 0);
+
+        // this.moveToPosInstant(init_pos);
     }
 
     // sets the zoom variable. updates viewer position and cellsize accordingly
@@ -52,9 +55,9 @@ class Viewer
 
         // offset viewer position based on mouse position
         var offsetP = this.mousePos;
-        offsetP.div(this.canvasSize);
+        offsetP.div(this.windowSize);
 
-        this.targetPos.add(new Vector(this.canvasSize.x*zoomP*offsetP.x, this.canvasSize.y*zoomP*offsetP.y)); // replace 2 with mousepos/canvasSize
+        this.targetPos.add(new Vector(this.windowSize.x*zoomP*offsetP.x, this.windowSize.y*zoomP*offsetP.y));
 
         this.cellSize = defaultCellSize * this.zoom;
     }
@@ -109,10 +112,19 @@ class Viewer
         this.targetPos = nPos;
     }
 
+    // instant move viewer.pos to given grid coord
+    moveToPosInstant(vector)
+    {
+        var nPos = this.translateCoordToCenterScreen(vector);
+        nPos = this.gridToScreen(nPos);
+        this.targetPos = nPos;
+        this.pos = nPos;
+    }
+
     // adds offset to given grid coord so it is in the center of the screen
     translateCoordToCenterScreen(vector)
     {
-        var v = Vector.div_int(this.canvasSize, this.cellSize);
+        var v = Vector.div_int(this.windowSize, this.cellSize);
         v.div_int(2);
         return Vector.add(vector, v);
     }

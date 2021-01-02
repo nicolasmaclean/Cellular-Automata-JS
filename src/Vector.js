@@ -185,4 +185,3 @@ class Vector
         return "[" + this.x + ", " + this.y +"]";
     }
 }
-
