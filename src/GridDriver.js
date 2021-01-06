@@ -4,7 +4,7 @@ var canvas;
 var draw;
 
 var prerender;
-var gridRenderer;
+var renderer;
 
 function main()
 {
@@ -14,7 +14,7 @@ function main()
 
     // prerender configs
     var init_loopState = 2;
-    var init_pos = new Vector(0, 0);
+    var init_pos = new Vector(-1, -1);
     var init_zoom = 1
     var init_minZoom = .8;
     var init_maxZoom = 9;
@@ -27,50 +27,19 @@ function main()
     prerender = new GridPrerender(init_loopState, init_pos, init_zoom, init_minZoom, init_maxZoom, new Vector(canvas.width, canvas.height), init_lerpFactor);
     renderer = new GridRenderer(prerender, clr_bg);
     var userInput = new UserInput(prerender.viewer, canvas);
-
-    update(prerender);
+    
+    update();
 }
 
 // TODO: move some logic back into the prerenderer so that renderer is ONLY methods utilized for drawing
 // TODO: isolate classes and code that need that need to be interchangable and make it easy to do so
 
-
 function update()
 {
-    // be careful this will update frame controller
-    var renderState = renderer.checkState(prerender);
-
-    // steps the simulation
-    if (renderState === GridRenderer.renderState.step)
-    {
-        renderer.PreStep(draw);
-        renderer.Step()
-        renderer.PostStep(draw);
-    }
-
-    // draws the grid
-    else if (renderState === GridRenderer.renderState.draw)
-    {
-        prerender.handleInput();
-        renderer.Draw(draw);
-    }
-
-    // does nothing
-    else if (renderState === GridRenderer.renderState.nothing)
-    {
-        // console.log("nothin");
-    }
-
-    // no loop
-    else if (renderState === GridRenderer.renderState.noLoop)
-    {
-        console.log("no loop");
-    }
-
-    if (renderState !== GridRenderer.renderState.noLoop)
-    {
-        window.requestAnimationFrame(update)
-    }
+    var loop = renderer.updateFunc();
+    
+    if (loop)
+        window.requestAnimationFrame(update);
 }
 
 window.onload = main;

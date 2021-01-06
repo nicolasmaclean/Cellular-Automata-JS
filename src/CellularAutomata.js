@@ -54,19 +54,4 @@ class CellularAutomata
         this.grid.pruneDefaultValues();
         this.generation++;
     }
-
-    // custom list.includes bc std includes won't compare vectors correctly 
-    list_contains(list, item)
-    {
-        for (var i in list)
-        {
-            if (Vector.equals(i, item))
-            {
-                console.log("equal " + item);
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

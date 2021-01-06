@@ -28,7 +28,7 @@ class Viewer
         this.coordsInLine = new NSet();
         this.mousePos = new Vector(0, 0);
 
-        // this.moveToPosInstant(init_pos);
+        this.moveToPosInstant(init_pos);
     }
 
     // sets the zoom variable. updates viewer position and cellsize accordingly

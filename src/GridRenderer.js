@@ -9,6 +9,49 @@ class GridRenderer
 
         this.prerender = prerender;
         this.clr_bg = clr_bg;
+
+        this.updateFunc = function ()
+        {
+            // be careful this will update frame controller
+            var renderState = renderer.checkState(prerender);
+
+            // steps the simulation
+            if (renderState === GridRenderer.renderState.step)
+            {
+                renderer.PreStep(draw);
+                renderer.Step()
+                renderer.PostStep(draw);
+            }
+
+            // draws the grid
+            else if (renderState === GridRenderer.renderState.draw)
+            {
+                prerender.handleInput();
+                renderer.Draw(draw);
+            }
+
+            // does nothing
+            else if (renderState === GridRenderer.renderState.nothing)
+            {
+                // console.log("nothin");
+            }
+
+            // no loop
+            else if (renderState === GridRenderer.renderState.noLoop)
+            {
+                console.log("no loop");
+            }
+
+            if (renderState !== GridRenderer.renderState.noLoop)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        };
     }
 
     // returns the update state and advances the update state
