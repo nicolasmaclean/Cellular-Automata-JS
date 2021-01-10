@@ -1,5 +1,6 @@
 class UserInput
 {
+    // canvas be left out if you would like to manually call attachEvents later
     constructor(viewer, canvas)
     {
         // static variables
@@ -8,7 +9,10 @@ class UserInput
         UserInput.scrollDivider = 15;
 
         // only do this if canvas is defined as expected
-        UserInput.attachEvents(canvas);
+        if (canvas !== undefined)
+        {
+            UserInput.attachEvents(canvas);
+        }
     }
 
     // attaches all events to the given canvas

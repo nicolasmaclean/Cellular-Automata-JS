@@ -54,4 +54,14 @@ class CellularAutomata
         this.grid.pruneDefaultValues();
         this.generation++;
     }
+
+    getCell(coord)
+    {
+        return this.grid.getCell(coord);
+    }
+
+    setCell(coord, val)
+    {
+        this.grid.setCell(coord, val);
+    }
 }
