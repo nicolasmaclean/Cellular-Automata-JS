@@ -32,10 +32,20 @@ function update()
         window.requestAnimationFrame(update);
 }
 
-/* The following 4 functions are only here for reference. They can also be found in CARender.js as static methods picked as default rendering methods.
-// when utilizing custom rendering functions call renderer.Update() with them. For example, if you were to use a custom PostStepDraw function, you would need to 
-// also provide DrawStyle and DrawCell functions, but not PreStepDraw. In this case if you wanted to only use a custom PostStepDraw, you could pass CARender.DrawStyle
-// and CARender.DrawCell, which are the default methods.
+
+// The following 5 functions are only here for reference. The first is an example of a custom cell, while the following 4 are the default rendering options.
+// They can also be found in CARender.js as static methods picked as default rendering methods.
+// when utilizing custom rendering functions call renderer.Update() with them. For example, if you were to use a custom DrawStyle function, you would need to 
+// also provide DrawCell function, but not PreStepDraw or PostStepDraw. In this case if you wanted to only use a custom DrawStyle, you could pass CARender.DrawCell,
+// which is a default methods.
+
+// function drawCellCustom(drawContext, coord, cellSize)
+// {
+//     var radius = (cellSize-1)/2;
+//     drawContext.beginPath();
+//     drawContext.arc(coord.x + radius, coord.y + radius, radius, 0, 2 * Math.PI);
+//     drawContext.fill(); 
+// }
 
 // clears the canvas
 // function PreStepDrawFunc(drawContext, clr, windowSize)
@@ -66,6 +76,6 @@ function update()
 // function DrawCellFunc(drawContext, coord, cellSize)
 // {
 //     drawContext.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
-// } */
+// }
 
 window.onload = main;

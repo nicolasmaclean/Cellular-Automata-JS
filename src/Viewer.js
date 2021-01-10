@@ -38,10 +38,10 @@ class Viewer
         this.zoom = z;
 
         // clamps zoom
-        if (this.zoom < minZoom)
-            this.zoom = minZoom;
-        else if (this.zoom > maxZoom)
-            this.zoom = maxZoom;
+        if (this.zoom < this.minZoom)
+            this.zoom = this.minZoom;
+        else if (this.zoom > this.maxZoom)
+            this.zoom = this.maxZoom;
 
         // zoom percentage
         if (this.zoom > zoomP)
@@ -59,7 +59,7 @@ class Viewer
 
         this.targetPos.add(new Vector(this.windowSize.x*zoomP*offsetP.x, this.windowSize.y*zoomP*offsetP.y));
 
-        this.cellSize = defaultCellSize * this.zoom;
+        this.cellSize = this.defaultCellSize * this.zoom;
     }
 
     addZoom(a)

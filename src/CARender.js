@@ -82,7 +82,7 @@ class CARender
     }
 
     // checks the state of the simulation/render and will step the simulation or render it if necessary. returns true if the update loop should continue.
-    Update(drawContext, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw, DrawStyleFunc = CARender.DrawStyle, DrawCellFunc = CARender.DrawCell)
+    Update(drawContext, DrawCellFunc = CARender.DrawCell, DrawStyleFunc = CARender.DrawStyle, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw)
     {
         // be careful this will update frame controller
         var renderState = this.checkState(true);
