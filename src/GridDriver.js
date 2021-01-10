@@ -1,4 +1,4 @@
-// this acts as a default update loop manager, but can be replaced for different methods of renderings
+// this is an example driver for using the Cellular-Automata-JS library with HTML canvas using the 2d drawing context
 
 var canvas;
 var draw;
@@ -16,30 +16,56 @@ function main()
     var init_loopState = 2;
     var init_pos = new Vector(-1, -1);
     var init_zoom = 1
-    var init_minZoom = .8;
-    var init_maxZoom = 9;
-    var init_lerpFactor = .2;
 
     // renderer configs
     var clr_bg = '#c0c0c0';
 
     //initialization
-    prerender = new GridPrerender(init_loopState, init_pos, init_zoom, init_minZoom, init_maxZoom, new Vector(canvas.width, canvas.height), init_lerpFactor);
+    prerender = new GridPrerender(init_loopState, new Vector(canvas.width, canvas.height));
     renderer = new GridRenderer(prerender, clr_bg);
     var userInput = new UserInput(prerender.viewer, canvas);
     
     update();
 }
 
-// TODO: move some logic back into the prerenderer so that renderer is ONLY methods utilized for drawing
-// TODO: isolate classes and code that need that need to be interchangable and make it easy to do so
-
+// update loop
 function update()
 {
-    var loop = renderer.updateFunc();
+    var loop = renderer.updateFunc(draw, PreStepDrawFunc, PostStepDrawFunc, DrawStyleFunc, DrawCellFunc);
     
     if (loop)
         window.requestAnimationFrame(update);
+}
+
+// clears the canvas
+function PreStepDrawFunc(drawContext, clr, windowSize)
+{
+    drawContext.fillStyle = clr;
+    drawContext.fillRect(0, 0, windowSize.x, windowSize.y);
+}
+
+// draws a border around the grid
+function PostStepDrawFunc(drawContext, clr, windowSize)
+{
+    drawContext.strokeStyle = clr;
+    drawContext.moveTo(1, 1);
+    drawContext.lineTo(1, windowSize.y-1);
+    drawContext.lineTo(windowSize.x-1, windowSize.y-1);
+    drawContext.lineTo(windowSize.x-1, 1);
+    drawContext.lineTo(1, 1);
+    drawContext.stroke();
+}
+
+// sets the fill style prior to drawing a batch of cells
+function DrawStyleFunc(drawContext, clr)
+{
+    drawContext.fillStyle = clr;
+}
+
+// draws a cell of given size at given screen coordinate, note cell color is not set in this method
+function DrawCellFunc(drawContext, coord, cellSize)
+{
+    drawContext.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
 }
 
 window.onload = main;

@@ -7,6 +7,13 @@ class UserInput
         UserInput.mouse_grabbing = false;
         UserInput.scrollDivider = 15;
 
+        // only do this if canvas is defined as expected
+        UserInput.attachEvents(canvas);
+    }
+
+    // attaches all events to the given canvas
+    static attachEvents(canvas)
+    {
         // adds mouse events
         canvas.onmousemove = function (event)
         {

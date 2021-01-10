@@ -1,7 +1,7 @@
 // stores info about the user's position in grid/screen space
 class Viewer
 {
-    constructor(init_pos, init_zoom, init_windowSize, init_lerpFactor, init_maxZoom, init_minZoom)
+    constructor(init_windowSize, init_pos = new Vector(0, 0), init_zoom = 1, init_lerpFactor = .2, init_maxZoom = 9, init_minZoom = .8)
     {
         // data
         this.pos = new Vector(0, 0); // move to input pos instantly 

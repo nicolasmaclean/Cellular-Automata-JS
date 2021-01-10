@@ -4,7 +4,7 @@
 //  This is still a WIP, so further modularizing will come
 //  12/27/20
 
-// To Use: include the the the included js files and a canvas element with the id "glcanvas"
+// To Use: include the included js files and a canvas element with the id "glcanvas"
 // left click is used to move the viewer's position across the grid
 // right click can be held or pressed to toggle cells' states
 // p will pause the simulation
@@ -13,16 +13,8 @@
 
 class GridPrerender
 {
-    constructor(init_loopState, init_pos, init_zoom, init_minZoom, init_maxZoom, init_windowSize, init_lerpFactor)
+    constructor(init_loopState, init_windowSize)
     {
-        // enums
-        GridPrerender.loopEnum = {
-            noLoop: 0,
-            drawLoop: 1,
-            stepLoop: 2,
-            step: 3
-        }
-        
         // configurations
         var defaultCellSize = 10;
         // var clr_bg = 'white';
@@ -32,7 +24,7 @@ class GridPrerender
     
         // initializes simulation
         this.GameofLife = new CellularAutomata();
-        this.viewer = new Viewer(init_pos, init_zoom, init_windowSize, init_lerpFactor, init_minZoom, init_maxZoom);
+        this.viewer = new Viewer(init_windowSize);
 
         this.GameofLife.grid.setCells_true([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)]);
     
@@ -91,4 +83,12 @@ class GridPrerender
             this.viewer.coordsInLine.union(inCoords);
         }
     }
+}
+
+// enums
+GridPrerender.loopEnum = {
+    noLoop: 0,
+    drawLoop: 1,
+    stepLoop: 2,
+    step: 3
 }

@@ -10,7 +10,7 @@ class GridRenderer
         this.prerender = prerender;
         this.clr_bg = clr_bg;
 
-        this.updateFunc = function ()
+        this.updateFunc = function (drawContext, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc)
         {
             // be careful this will update frame controller
             var renderState = renderer.checkState(prerender);
@@ -18,16 +18,17 @@ class GridRenderer
             // steps the simulation
             if (renderState === GridRenderer.renderState.step)
             {
-                renderer.PreStep(draw);
+                prerender.handleInput();
+                renderer.PreStep(drawContext, PreStepFunc);
                 renderer.Step()
-                renderer.PostStep(draw);
+                renderer.PostStep(drawContext, PostStepFunc, DrawStyleFunc, DrawCellFunc);
             }
 
             // draws the grid
             else if (renderState === GridRenderer.renderState.draw)
             {
                 prerender.handleInput();
-                renderer.Draw(draw);
+                renderer.Draw(drawContext, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc);
             }
 
             // does nothing
@@ -40,20 +41,15 @@ class GridRenderer
             else if (renderState === GridRenderer.renderState.noLoop)
             {
                 console.log("no loop");
-            }
-
-            if (renderState !== GridRenderer.renderState.noLoop)
-            {
-                return true;
-            }
-
-            else
-            {
                 return false;
             }
+
+            // flag to indicate loop should be continued
+            return true;
         };
     }
 
+    // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
     // returns the update state and advances the update state
     checkState(prerender)
     {
@@ -82,6 +78,7 @@ class GridRenderer
             return GridRenderer.renderState.step;
         }
         
+        // TODO: move viewer.pos == viewer.target pos to be handelled in viewer.update and have it modify viewer.needDraw
         // draw loop
         else if (((prerender.viewer.paused || prerender.updateState === GridPrerender.loopEnum.drawLoop) && prerender.viewer.needDraw) || prerender.viewer.needDraw || !prerender.viewer.targetPos.equals(prerender.viewer.pos))
         {
@@ -110,67 +107,58 @@ class GridRenderer
     }
     
     // perfroms draw without stepping the simulation
-    Draw(draw)
+    Draw(draw, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc)
     {
-        this.PreStep(draw);
-        this.PostStep(draw);
+        this.PreStep(draw, PreStepFunc);
+        renderer.PostStep(draw, PostStepFunc, DrawStyleFunc, DrawCellFunc);
     }
 
     // pre simulation
-    PreStep(draw)
+    PreStep(drawContext, PreStepFunc)
     {
         // clears the canvas
-        draw.fillStyle = this.clr_bg;
-        draw.fillRect(0, 0, canvas.width, canvas.height);
+        var clr = this.clr_bg;
+        var windowSize = this.prerender.viewer.windowSize;
+        PreStepFunc(drawContext, clr, windowSize);
         
         prerender.viewer.Update();
     }
 
     // post simulation
-    PostStep(draw)
+    PostStep(drawContext, PostStepFunc, DrawStyleFunc, DrawCellFunc)
     {
-        GridRenderer.DrawGrid(this.prerender, draw);
+        var gridData = this.prerender.drawGridData();
+        var cellSize = this.prerender.viewer.cellSize;
+        GridRenderer.DrawGrid(gridData, cellSize, draw, DrawStyleFunc, DrawCellFunc);
         
         // TODO: separate this into a second "UI" canvas that is painted ontop of the grid canvas
-        // adds border around bottom and right sides of canvas
-        draw.strokeStyle = this.clr_bg;
-        draw.moveTo(1, 1);
-        draw.lineTo(1, canvas.height-1);
-        draw.lineTo(canvas.width-1, canvas.height-1);
-        draw.lineTo(canvas.width-1, 1);
-        draw.lineTo(1, 1);
-        draw.stroke();
-
-        prerender.GameofLife.grid.pruneDefaultValues();
+        var bg = this.clr_bg;
+        var windowSize = this.prerender.viewer.windowSize;
+        PostStepFunc(drawContext, bg, windowSize);
     }
 
     // draws the grid retrieved from prerender
-    static DrawGrid(prerender, draw)
+    static DrawGrid(gridData, cellSize, drawContext, DrawStyleFunc, DrawCellFunc)
     {
-        // retrieves cells to draw batched by color
-        var cells = prerender.drawGridData();
-        var cellSize = prerender.viewer.cellSize;
-        
         // cycles through colors
-        for (let clr in cells)
+        for (let clr in gridData)
         {
-            draw.fillStyle = clr;
+            // sets fill color/style to take advantage of color batching
+            DrawStyleFunc(drawContext, clr);
             
             // cycles through coordinates
-            for (let coordIndex in cells[clr])
+            for (let coordIndex in gridData[clr])
             {
-                GridRenderer.DrawCell(draw, cells[clr][coordIndex], cellSize);
+                var coord = gridData[clr][coordIndex];
+
+                // draws current cell
+                DrawCellFunc(drawContext, coord, cellSize);
             }
         }
     }
-
-    // draws given cell
-    static DrawCell(draw, coord, cellSize)
-    {
-        draw.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
-    }
 }
 
+// enum
 GridRenderer.renderState = {
     step: 0,
     draw: 1,
