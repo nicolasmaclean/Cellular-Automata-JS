@@ -42,8 +42,7 @@ class UserInput
         canvas.onmouseleave = function (event)
         {
             UserInput.mouseUp_left(event);
-            UserInput.viewer.needDraw = true;
-            UserInput.viewer.drawing = false;
+            UserInput.mouseClick_right(event);
         };
         
         canvas.onwheel = function (event)
@@ -140,7 +139,6 @@ class UserInput
     // selects cell and pushs to list
     static mouseClick_right(e)
     {
-        UserInput.viewer.newCoords.add(UserInput.viewer.screenToGrid(new Vector(e.clientX, e.clientY)));
         UserInput.viewer.needDraw = true;
         UserInput.viewer.drawing = false;
     }

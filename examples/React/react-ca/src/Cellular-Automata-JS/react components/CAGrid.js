@@ -32,7 +32,7 @@ export default function CAGrid(props)
         return () => {
             cancelAnimationFrame(requestIdRef.current);
           };
-    }, []);
+    });
   
     return <canvas ref={canvasRef} width={props.init_width} height={props.init_height}/>;
 }

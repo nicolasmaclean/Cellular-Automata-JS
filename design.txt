@@ -1,0 +1,149 @@
+Interface Planning
+
+----------------------
+
+purpose/dependencies
+
+independent:
+	Simulation (Cellular Automata): store data and perform steps in simulation
+		stores cells within a sparce matrix
+		provides a simulation method
+
+	Pre render: collect necessary data for renderer
+		retrieves coordinates of each cell relative to the viewer in color batches
+			viewer (pos, cellSize, windowSize) and grid values
+		handles input
+			viewer (newCoords, coordsInLine) and grid write access
+
+dependent:
+	Renderer: renders data from prerender
+		PreStep/PostStep
+			prerender (draw data), draw context, viewer.cellSize, window size, clr_bg
+		Step
+			handle input, step simulation
+		checkState
+			viewer (paused, step, needDraw), prerender (updateState), GridPrerender.loopEnum, FPS interval
+		Update
+			Renderer (PreStep, Step, PostStep, checkState), GridRenderer.renderStateEnum
+			as of now, renderer is being accessed a global variable from within GridDriver.js
+			only idea to fix this is to make all renderer depenedencies static variables/methods
+
+		PreStep/Step/PostStep dependencies
+			prerender.viewer (windowSize, cellSize, Update()), prerender (drawGridData(), handleInput), prerender.GameOfLife.step()
+
+---------------------------
+
+Interactions
+
+initialization of the CA
+	Simulation (rules, initial viewer info)
+		Viewer
+		Grid
+		Rules
+		Step method
+
+updates/checks on the CA...
+	supplies data from simulation to renderer, acts as an API of sorts
+	prerender () 
+		static getData (viewer, access to grid)
+	renderer ()
+		static fpsInterval, fpsIntervalS
+		static checkState (viewer states, prerender.updateState)
+		static updateFunc (drawContext) will also need anything else the other static methods need too
+			needs to call viewer.update
+		static PreStep (drawContext, drawFunc())
+		static Step (simulation.step(), handleInput()?)
+		static PostStep (drawContext, PostStepFunc, DrawStyleFunc, DrawCellFunc)
+		static DrawGrid (gridData, cellSize, drawContext, DrawStyleFunc, DrawCellFunc)
+
+other classes used...
+	Viewer (not sure if it should be supplied initializing pos and such)
+		position
+		#zoom
+		cellSize
+		setZoom/addZoom ()
+		screenToGrid/gridToScreen (coord)
+		moveToGridPos (coord) second version to do so instantly
+		#translateCoordToCenterScreen (screenCoord)
+		Update ()
+			lerps position to targetPosition
+		
+input functions...	
+	// clears the canvas	
+	function PreStepDrawFunc(drawContext, clr, windowSize)
+
+	// draws a border around the grid
+	function PostStepDrawFunc(drawContext, clr, windowSize)
+
+	// sets the fill style prior to drawing a batch of cells
+	function DrawStyleFunc(drawContext, clr)
+
+	// draws a cell of given size at given screen coordinate, note cell color is not set in this method
+	function DrawCellFunc(drawContext, coord, cellSize)
+
+---------------------------
+
+Thinking about how to have prerender, ca, and render interact
+	
+idea 1: combine ca and prerender, then give render a reference to ca. This will include viewer as a variable within render
+	This will establish CA as most only simulation and to get render data, viewer is the only thing needed to be passed
+
+idea 2: combine prerender and render, again, and leave ca alone.
+	This will actually make CA simulation only, so that the viewer and rendering are completely removed
+
+---------------------------
+
+Tasks...
+
+Done - have PreStep and PostStep take in a draw context and a function that utilizes the context to draw
+encapsulate the above functions into a javascript object that is passed through, maybe
+Done - make html canvas render methods default parameters for Update()
+
+have viewer.update adjust needDraw by the additional check if targetPos != pos
+reorganize/remove inputHandlling from viewer
+
+--------------------------
+
+Input Handeller Planning...
+
+mouse events for reference
+	onMouseDown(e)
+	onMouseUp(e)
+	onMouseLeave(e) // calls releaseCanvas and set viewer.needDraw = true and viewer.drawing = false
+	onMouseMove(e)
+	onMouseScroll(e)
+	onMouseScroll(e)
+
+actions to interact with simulation/renderer
+	toggleCell(screenCoordinates)
+		viewer(needDraw, drawing)
+
+	pauseSimulation()
+		viewer.paused
+
+	stepSimulation()
+		viewer.step
+
+	addZoom(inc)
+		viewer(addZoom(), needDraw)
+
+	grabCanvas()
+		UserInput.grabbing
+
+	moveCanvas(deltaMousePosition)
+		viewer(targetPos, needDraw)
+
+	releaseCanvas()
+		UserInput.grabbing
+
+	drawCellsDown(screenCoordinates)
+
+	drawCells(screenCoordinates)
+		viewer(screenToGrid(), coordsInLine, newCoords, needDraw, drawing)
+
+	drawCellsUp(screenCoordinates)
+		viewer(newCoords, screenToGrid(), needDraw, drawing)
+ideas
+	move states attached as variables in viewer to the renderer
+
+--------------------------
