@@ -1,66 +1,38 @@
 import React from 'react';
 import { CARender, Vector } from '../import';
 
-class CAGrid extends React.Component
+export default function CAGrid(props)
 {
-    constructor(props)
+    // references
+    const canvasRef = React.useRef(null);
+    const requestIdRef = React.useRef(null);
+
+    // cellular automata variables
+    var renderer = new CARender(props.init_loopState, new Vector(props.init_width, props.init_height));
+  
+    // update function
+    const tick = () =>
     {
-        super(props);
-
-        this.state = {
-            renderer: new CARender(this.props.init_loopState, new Vector(this.props.init_width, this.props.init_height)),
-            loop: true,
-        }
-
-        this.canvasRef = React.createRef();
-    }
-
-    // gets canvas draw context
-    componentDidMount()
-    {
-        this.drawContext = this.canvasRef.current.getContext('2d');
-    }
-
-    // checks new CARender if update is needed
-    shouldComponentUpdate(nextProps, nextState)
-    {
-        var CAState = nextState.renderer.checkState(false);
-        console.log(CAState);
-
-        if (CAState === CARender.renderState.nothing || !nextState.loop)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
+        // stops loop when canvas is offscreen. Note, the loop will resume when the canvas is back on screen.
+        if (!canvasRef.current) return;
+        
+        var draw = canvasRef.current.getContext('2d');
+        var loop = renderer.Update(draw);
     
-    handleUpdate()
+        if (loop)
+            requestIdRef.current = requestAnimationFrame(tick);
+    };
+  
+    // starts/resumes update loop when the canvas is rendered on screen
+    React.useEffect(() =>
     {
-        this.forceUpdate();
-    }
+        requestAnimationFrame(tick);
 
-    // provides react with a canvas and utilizes the update loop
-    render()
-    {
-        // updates the simulation/draws the grid to the canvas
-        if (this.drawContext !== undefined)
-        {
-            var l = this.state.renderer.Update(this.drawContext);
-            this.setState({
-                loop: l
-            });
-        }
-    
-        return (
-            <div>
-                <canvas ref= {this.canvasRef} width={this.props.init_width} height={this.props.init_height} onClick={this.handleUpdate}></canvas>
-                <h1> hi </h1>
-            </div>
-        );
-    }
+        // garbage collection
+        return () => {
+            cancelAnimationFrame(requestIdRef.current);
+          };
+    }, []);
+  
+    return <canvas ref={canvasRef} width={props.init_width} height={props.init_height}/>;
 }
-
-export default CAGrid
