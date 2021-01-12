@@ -137,6 +137,12 @@ class Grid
             func(k);
         });
     }
+
+    // cycles the requested cell to the next state
+    cycleCell(coord)
+    {
+        
+    }
 }
 
 export default Grid;

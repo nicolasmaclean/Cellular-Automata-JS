@@ -1,6 +1,6 @@
 // stores info about the user's position in grid/screen space
 
-import { Vector, NSet } from './import'
+import { Vector } from './import'
 
 class Viewer
 {
@@ -20,20 +20,11 @@ class Viewer
         this.defaultCellSize = 10;
         this.cellSize = this.defaultCellSize * this.zoom;
         
-        // state tracking
-        this.needDraw = false; // move this into user input
-        this.drawing = false;
-        this.step = false;
-        this.paused = false;
-        
-        // user input
-        this.newCoords = new NSet();
-        this.coordsInLine = new NSet();
-        this.mousePos = new Vector(0, 0);
-        
+        // moves to given position
         this.moveToPosInstant(init_pos);
     }
 
+    // TODO: this sucks ass. Fix it.
     // sets the zoom variable. updates viewer position and cellsize accordingly
     setZoom(z)
     {
@@ -56,11 +47,8 @@ class Viewer
             zoomP = (zoomP - this.zoom) / this.zoom;
         }
 
-        // offset viewer position based on mouse position
-        var offsetP = this.mousePos;
-        offsetP.div(this.windowSize);
-
-        this.targetPos.add(new Vector(this.windowSize.x*zoomP*offsetP.x, this.windowSize.y*zoomP*offsetP.y));
+        // offset so zoom is from the middle, not the top right right of the canvas
+        this.targetPos.add(new Vector(this.windowSize.x*zoomP/4, this.windowSize.y*zoomP/4));
 
         this.cellSize = this.defaultCellSize * this.zoom;
     }
@@ -134,7 +122,14 @@ class Viewer
 
     Update()
     {
-        this.pos.lerp(this.targetPos, this.lerpFactor);
+        if (Vector.distanceSQ(this.pos, this.targetPos) < 1)
+        {
+            this.pos = this.targetPos;
+        }
+        else
+        {
+            this.pos.lerp(this.targetPos, this.lerpFactor);
+        }
     }
 }
 

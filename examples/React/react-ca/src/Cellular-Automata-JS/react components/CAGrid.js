@@ -40,7 +40,7 @@ export default function CAGrid(props)
 
     // cellular automata
     var renderer = new CARender(state.init_loopState, new Vector(state.init_width, state.init_height));
-    var userInput = new UserInput(renderer.viewer);
+    var userInput = new UserInput(renderer);
   
     // update function
     const tick = () =>
@@ -59,24 +59,8 @@ export default function CAGrid(props)
     React.useEffect(() =>
     {
         requestAnimationFrame(tick);
-        userInput.attachEvents(canvasRef.current, false);
+        userInput.attachEvents(canvasRef.current);
         
-        // bc false is passes as a second param in userInput.attachEvents, the pause step and grab toggle are not setup. This allows the user to bind them as they would like
-        document.onkeydown = function (event) {
-            if (event.key === this.keybinds.step)
-            {
-                this.singleStep();
-            }
-            else if (event.key === this.keybinds.pause && !event.repeat)
-            {
-                this.pauseToggle();
-            }
-            else if (event.key === this.keybinds.grabCanvas && !event.repeat)
-            {
-                this.grabCanvasToggle();
-            }
-        }.bind(userInput);
-
         // acts as ComponentDidUnmount()
         return () => {
             cancelAnimationFrame(requestIdRef.current);

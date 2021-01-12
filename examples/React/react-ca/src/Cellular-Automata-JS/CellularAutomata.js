@@ -63,6 +63,7 @@ class CellularAutomata
         this.generation++;
     }
 
+    // wrapper functions for sparce matrix access
     getCell(coord)
     {
         return this.grid.getCell(coord);
@@ -71,6 +72,11 @@ class CellularAutomata
     setCell(coord, val)
     {
         this.grid.setCell(coord, val);
+    }
+
+    cycleCell(coord)
+    {
+        this.grid.cycleCell(coord);
     }
 }
 

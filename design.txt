@@ -149,3 +149,10 @@ ideas
 	input handller object stores a CARender that its associated with, so it static stuff doesn't have to be used
 		and +
 --------------------------
+
+TODO...
+
+fix viewer.setZoom
+Grid.toggleCell and make grid store Cells not booleans
+
+--------------------------

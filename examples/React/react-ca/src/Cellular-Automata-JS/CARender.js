@@ -31,6 +31,17 @@ class CARender
 
         this.lastFrame = 0;
         this.lastFrameS = 0;
+
+        // state management
+        this.step = false;
+        this.paused = false;
+        this.needDraw = false;
+
+        // input
+        this.coordsSet = []; // list of lists that store a coord and value to set at that coord
+        this.lineCoordsDone = new NSet(); // stores a set of coords
+        this.lineCoordsAdd = new NSet();
+
     }
 
     // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
@@ -45,7 +56,7 @@ class CARender
         var elapsedS = currentFrameS - this.lastFrameS;
         
         // simulation loop
-        if (!this.viewer.paused && this.updateState === CARender.loopEnum.stepLoop && elapsed > this.fpsInterval)
+        if (!this.paused && this.updateState === CARender.loopEnum.stepLoop && elapsed > this.fpsInterval)
         {
             if (updateFPSTracking)
             {
@@ -56,23 +67,23 @@ class CARender
         }
         
         // single step
-        else if ((this.updateState !== CARender.loopEnum.stepLoop || this.viewer.paused) && this.viewer.step && elapsedS > this.fpsIntervalS) // add a fps controller
+        else if ((this.updateState !== CARender.loopEnum.stepLoop || this.paused) && this.step && elapsedS > this.fpsIntervalS) // add a fps controller
         {
             if (updateFPSTracking)
             {
                 this.lastFrameS = currentFrameS - (elapsedS % this.fpsIntervalS);
             }
             
-            this.viewer.step = false;
+            this.step = false;
 
             return CARender.renderState.step;
         }
         
         // TODO: move viewer.pos == viewer.target pos to be handelled in viewer.update and have it modify viewer.needDraw
         // draw loop
-        else if (((this.viewer.paused || this.updateState === CARender.loopEnum.drawLoop) && this.viewer.needDraw) || this.viewer.needDraw || !this.viewer.targetPos.equals(this.viewer.pos))
+        else if (((this.paused || this.updateState === CARender.loopEnum.drawLoop) && this.needDraw) || this.needDraw || !this.viewer.targetPos.equals(this.viewer.pos))
         {
-            this.viewer.needDraw = false;
+            this.needDraw = false;
             return CARender.renderState.draw;
         }
 
@@ -153,27 +164,25 @@ class CARender
         return cells;
     }
 
-    // update the way it cycles through cell states
+    // TODO: update the way it cycles through cell states
     // handles input stored in the Viewer object
     handleInput()
     {
-        // handles incoming coords
-        var inCoords = NSet.difference(this.viewer.newCoords, this.viewer.coordsInLine);
-        inCoords.forEach(val =>
+        // toggles coords in the line that haven't already been processed
+        NSet.difference(this.lineCoordsAdd, this.lineCoordsDone).forEach( val => 
         {
+            // this.CellularAutomata.cycleCell(val);
             this.CellularAutomata.setCell(val, !this.CellularAutomata.getCell(val));
         })
 
-        this.viewer.newCoords = new NSet();
+        // updates the sets
+        this.lineCoordsDone.union(this.lineCoordsAdd);
+        this.lineCoordsAdd = new NSet();
 
-        // handles line drawing
-        if (!this.viewer.drawing)
+        // sets given coords with their requested value
+        for (let x in this.coordsSet)
         {
-            this.viewer.coordsInLine = new NSet();
-        }
-        else 
-        {
-            this.viewer.coordsInLine.union(inCoords);
+            this.CellularAutomata.setCell(x[0], x[1]);
         }
     }
 

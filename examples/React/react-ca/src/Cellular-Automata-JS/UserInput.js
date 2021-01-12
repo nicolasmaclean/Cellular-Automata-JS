@@ -3,10 +3,11 @@ import { Vector, NSet } from './import'
 class UserInput
 {
     // canvas be left out if you would like to manually call attachEvents later
-    constructor(viewer, init_scrollDivider = 15)
+    constructor(render, init_scrollDivider = 15)
     {
         // instantance variables
-        this.viewer = viewer;
+        this.render = render;
+        this.render.viewer = render.viewer;
         this.scrollDivider = init_scrollDivider;
 
         this.keybinds = {
@@ -62,6 +63,9 @@ class UserInput
             if(this.grabCanvas)
             {
                 this.grabGrid();
+            }
+            else{
+                this.startDrawing(event);
             }
         }.bind(this);
         
@@ -120,9 +124,6 @@ class UserInput
     // moves the viewer by mouse delta on mousemove event
     mouseMove(e)
     {
-        // tracks mouse position
-        this.viewer.mousePos = new Vector(e.clientX, e.clientY);
-
         // grabs canvas to move it
         if (this.grabCanvas && e.buttons === 1 && this.mouse_grabbing)
         {
@@ -145,8 +146,8 @@ class UserInput
     // moves viewer position by given movement vector
     moveGrid(movement)
     {
-        this.viewer.targetPos.add(new Vector(movement.x, movement.y));
-        this.viewer.needDraw = true;
+        this.render.viewer.targetPos.add(new Vector(movement.x, movement.y));
+        this.render.needDraw = true;
     }
     
     // grabs canvas
@@ -170,8 +171,8 @@ class UserInput
     // zooms in and out
     zoom(inc)
     {
-        this.viewer.addZoom(inc)
-        this.viewer.needDraw = true;
+        this.render.viewer.addZoom(inc)
+        this.render.needDraw = true;
     }
 
     // wrapper for this.drawCell() that processes mouse event info
@@ -180,18 +181,30 @@ class UserInput
         this.drawCells(new Vector(e.clientX, e.clientY));
     }
 
-    // TODO: move viewer.coordsInLine to this class
+    // wrapper for this.startDrawing that processes mouse event info
+    startDrawingHandeler(e)
+    {
+        this.startDrawing(new Vector(e.clientX, e.clientY));
+    }
+    
+    // draws the first cell in a line
+    startDrawing(screenCoord)
+    {
+        this.render.lineCoordsAdd.add(this.render.viewer.screenToGrid(screenCoord));
+        this.render.needDraw = true;
+    }
+
     // draws cells
     drawCells(screenCoord)
     {
         // copies input and converts to grid space
         var coord = new Vector(screenCoord.x, screenCoord.y);
-        coord = this.viewer.screenToGrid(coord);
+        coord = this.render.viewer.screenToGrid(coord);
 
         // catches cells that were skipped by the mousemove event
-        if (this.viewer.coordsInLine.size() !== 0)
+        if (this.render.lineCoordsDone.size() !== 0)
         {
-            var lastCoord = this.viewer.coordsInLine.get(this.viewer.coordsInLine.size()-1);
+            var lastCoord = this.render.lineCoordsDone.get(this.render.lineCoordsDone.size()-1);
             var dif = Vector.abs(Vector.sub(coord, lastCoord));
 
             // checks if there were cells missed
@@ -202,22 +215,20 @@ class UserInput
                 
                 tweenerCoords.forEach( (item) =>
                 {
-                    this.viewer.newCoords.add(item);
+                    this.render.lineCoordsAdd.add(item);
                 });
             }
         }
 
-        this.viewer.newCoords.add(coord);
-
-        this.viewer.needDraw = true;
-        this.viewer.drawing = true;
+        this.render.lineCoordsAdd.add(coord);
+        this.render.needDraw = true;
     }
     
     // stops drawing cells
     stopDrawing()
     {
-        this.viewer.needDraw = true;
-        this.viewer.drawing = false;
+        this.render.lineCoordsDone = new NSet();
+        this.render.lineCoordsAdd = new NSet();
     }
 
     // this.toggleCell wrapper that processes mouse event info
@@ -229,20 +240,21 @@ class UserInput
     // toggles given cell
     toggleCell(screenCoords)
     {
-        this.viewer.newCoords.add(this.viewer.screenToGrid(screenCoords));
+        var gridCoord = this.render.viewer.screenToGrid(screenCoords);
+        this.render.coordsSet.push([gridCoord, this.render.CellularAutomata.getCell(gridCoord)]);
         this.stopDrawing();
     }
     
     // steps the simulation once if it is paused or in the draw loop
     singleStep()
     {
-        this.viewer.step = true;
+        this.render.step = true;
     }
     
     // pauses simulation if in the simulation loop
     pauseToggle()
     {
-        this.viewer.paused = !this.viewer.paused;
+        this.render.paused = !this.render.paused;
     }
 
     // switches left click between grabbing the canvas and drawing cells

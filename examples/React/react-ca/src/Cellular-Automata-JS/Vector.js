@@ -175,6 +175,19 @@ class Vector
         return l;
     }
 
+    static distance(vector, other_vector)
+    {
+        var diff = Vector.sub(vector, other_vector);
+        var dSQ = diff.x*diff.x + diff.y*diff.y;
+        return Math.sqrt(dSQ);
+    }
+
+    static distanceSQ(vector, other_vector)
+    {
+        var diff = Vector.sub(vector, other_vector);
+        return diff.x*diff.x + diff.y*diff.y;
+    }
+
     toString()
     {
         return "[" + this.x + ", " + this.y +"]";
