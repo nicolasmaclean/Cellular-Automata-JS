@@ -4,7 +4,6 @@ import {
     CellularAutomata,
     Viewer,
     Vector,
-    Cell,
     NSet,
 } from './import';
 
@@ -20,7 +19,7 @@ class CARender
         this.CellularAutomata = new CellularAutomata();
         this.viewer = new Viewer(init_windowSize);
         
-        this.CellularAutomata.grid.setCells_true([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)]);
+        this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
         
         // FPS controller stuff
         this.fps = init_fps;
@@ -142,12 +141,12 @@ class CARender
     // returns a js object with cell colors as keys and stored as their values
     drawGridData()
     {
-        var cells = Cell.getBatchObject();
-
+        var cells = this.CellularAutomata.grid.createBatchObject();
+        
         // grid coords within the window bounds, inclusive
         this.xBounds = new Vector(Math.floor(-this.viewer.pos.x/this.viewer.cellSize), Math.floor((-this.viewer.pos.x+this.viewer.windowSize.x)/this.viewer.cellSize));
         this.yBounds = new Vector(Math.floor(-this.viewer.pos.y/this.viewer.cellSize), Math.floor((-this.viewer.pos.y+this.viewer.windowSize.y)/this.viewer.cellSize));
-
+        
         for (var x = this.xBounds.x; x <= this.xBounds.y; x++)
         {
             for (var y = this.yBounds.x; y <= this.yBounds.y; y++)
@@ -155,9 +154,10 @@ class CARender
                 // cell info
                 var cx = x*this.viewer.cellSize + this.viewer.pos.x;
                 var cy = y*this.viewer.cellSize + this.viewer.pos.y;
-                var val = Cell.getColor(this.CellularAutomata.getCell(new Vector(x, y)));
+                var val = this.CellularAutomata.getCell(new Vector(x, y));
+                var clr = this.CellularAutomata.grid.cellColors[val];
                 
-                cells[val].push(new Vector(cx, cy));
+                cells[clr].push(new Vector(cx, cy));
             }
         }
 
@@ -171,8 +171,7 @@ class CARender
         // toggles coords in the line that haven't already been processed
         NSet.difference(this.lineCoordsAdd, this.lineCoordsDone).forEach( val => 
         {
-            // this.CellularAutomata.cycleCell(val);
-            this.CellularAutomata.setCell(val, !this.CellularAutomata.getCell(val));
+            this.CellularAutomata.cycleCell(val);
         })
 
         // updates the sets

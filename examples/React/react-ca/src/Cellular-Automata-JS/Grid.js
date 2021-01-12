@@ -1,16 +1,32 @@
-// a sparse matrix (dictionary implementation) that stores the value of each cell
+// a sparse matrix that stores the value of each cell
 // TODO: setCell, getCell needs to be reconfigured if a version other than gamme of life is use
 // TODO: move functions like getNeighbors into cell.js or rules.js so that they are more customizable
 
-import { Vector, Cell } from './import';
+import { Vector } from './import';
 
 class Grid
 {
-    constructor()
+    constructor(possibleCellStates = { dead: 0, live: 1 }, cellColors = { 0: 'white', 1: 'black'})
     {
         this.mat = new Map();
+        this.cellStates = possibleCellStates; // default cell states are binary
+        this.cellColors = cellColors;
+        this.cellStatesLength = Object.keys(possibleCellStates).length;
     }
     
+    // returns a javascript object with colors storing list of coords
+    createBatchObject()
+    {
+        var batch = {};
+        
+        for (let x in this.cellStates)
+        {
+            batch[this.cellColors[this.cellStates[x]]] = [];
+        }
+
+        return batch;
+    }
+
     // tostring to convert a vector into a string, which is used as a key for the map
     static tostring(v)
     {
@@ -28,7 +44,7 @@ class Grid
     // prunes false values to uphold sparse matrix
     pruneDefaultValues()
     {
-        var defaultValue = Cell.defaultValue();
+        var defaultValue = 0;
         
         this.mat.forEach((val, key) => {
             if (val === defaultValue)
@@ -43,10 +59,11 @@ class Grid
     getCell(pos)
     {
         var str = Grid.tostring(pos);
+        
         if (this.hasCell(pos))
             return this.mat.get(str);
         else
-            return false;
+            return 0;
     }
 
     // returns if the requested position is in the map
@@ -72,19 +89,11 @@ class Grid
         })
     }
 
-    // sets given cell positions to true
-    setCells_true(arr)
+    // sets all given cell positions to given value
+    setCells_val(arr, val)
     {
         arr.forEach(cell => {
-            this.setCell(cell, true);
-        })
-    }
-
-    // sets given cell positions to false
-    setCells_false(arr)
-    {
-        arr.forEach(cell => {
-            this.setCell(cell, false);
+            this.setCell(cell, val);
         })
     }
 
@@ -97,7 +106,7 @@ class Grid
         }
     }
 
-    // returns a list of live cells neighboring given cell
+    // returns a list nieghboring coords
     getNeighboringCells(pos)
     {
         var neighbors = []
@@ -141,7 +150,8 @@ class Grid
     // cycles the requested cell to the next state
     cycleCell(coord)
     {
-        
+        // console.log(this.getCell(coord),  (this.getCell(coord)+1) % this.cellStatesLength)
+        this.setCell( coord, (this.getCell(coord)+1) % this.cellStatesLength);
     }
 }
 

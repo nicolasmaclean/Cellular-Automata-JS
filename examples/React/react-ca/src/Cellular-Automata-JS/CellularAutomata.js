@@ -1,6 +1,6 @@
 // applies given rules using given struct for each cell
 
-import { Grid, ConwayGOL, Cell } from './import'
+import { Grid, ConwayGOL } from './import'
 
 class CellularAutomata
 {
@@ -38,9 +38,9 @@ class CellularAutomata
             // {
             //     nVal = rule(neighbors, nVal);
             // }
-            var nVal = ConwayGOL(neighbors, true);
+            var nVal = ConwayGOL(neighbors, 1);
             
-            if(nVal !== Cell.defaultValue())
+            if(nVal !== 0)
             {
                 nMap.set(Grid.tostring(key), nVal);
             }
@@ -53,13 +53,13 @@ class CellularAutomata
             var neighbors = this.grid.getLiveNeighbors(key);
             // value = this.grid.getCell(key);
 
-            var nVal = ConwayGOL(neighbors, false); // TODO: use value if this is not game of life
+            var nVal = ConwayGOL(neighbors, 0); // TODO: use value if this is not game of life
             if(nVal)
                 nMap.set(Grid.tostring(key), nVal);
         });
 
         this.grid.setNewMap(nMap);
-        this.grid.pruneDefaultValues();
+        // this.grid.pruneDefaultValues();
         this.generation++;
     }
 

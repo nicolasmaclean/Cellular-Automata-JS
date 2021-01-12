@@ -241,7 +241,7 @@ class UserInput
     toggleCell(screenCoords)
     {
         var gridCoord = this.render.viewer.screenToGrid(screenCoords);
-        this.render.coordsSet.push([gridCoord, this.render.CellularAutomata.getCell(gridCoord)]);
+        this.render.CellularAutomata.cycleCell(gridCoord);
         this.stopDrawing();
     }
     
