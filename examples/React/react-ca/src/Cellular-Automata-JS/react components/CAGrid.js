@@ -59,7 +59,23 @@ export default function CAGrid(props)
     React.useEffect(() =>
     {
         requestAnimationFrame(tick);
-        userInput.attachEvents(canvasRef.current);
+        userInput.attachEvents(canvasRef.current, false);
+        
+        // bc false is passes as a second param in userInput.attachEvents, the pause step and grab toggle are not setup. This allows the user to bind them as they would like
+        document.onkeydown = function (event) {
+            if (event.key === this.keybinds.step)
+            {
+                this.singleStep();
+            }
+            else if (event.key === this.keybinds.pause && !event.repeat)
+            {
+                this.pauseToggle();
+            }
+            else if (event.key === this.keybinds.grabCanvas && !event.repeat)
+            {
+                this.grabCanvasToggle();
+            }
+        }.bind(userInput);
 
         // acts as ComponentDidUnmount()
         return () => {
