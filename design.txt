@@ -115,9 +115,6 @@ mouse events for reference
 	onMouseScroll(e)
 
 actions to interact with simulation/renderer
-	toggleCell(screenCoordinates)
-		viewer(needDraw, drawing)
-
 	pauseSimulation()
 		viewer.paused
 
@@ -141,9 +138,14 @@ actions to interact with simulation/renderer
 	drawCells(screenCoordinates)
 		viewer(screenToGrid(), coordsInLine, newCoords, needDraw, drawing)
 
-	drawCellsUp(screenCoordinates)
+	drawCellsUp(screenCoordinates) // this should maybe be called at the same time as toggleCell?
 		viewer(newCoords, screenToGrid(), needDraw, drawing)
+
+	toggleCell(screenCoordinates)
+		viewer(needDraw, drawing)
 ideas
 	move states attached as variables in viewer to the renderer
 
+	input handller object stores a CARender that its associated with, so it static stuff doesn't have to be used
+		and +
 --------------------------

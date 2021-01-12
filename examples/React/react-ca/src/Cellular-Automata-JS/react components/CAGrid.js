@@ -1,5 +1,6 @@
 import React from 'react';
 import { CARender, Vector } from '../import';
+import UserInput from '../UserInput';
 
 export default function CAGrid(props)
 {
@@ -7,8 +8,39 @@ export default function CAGrid(props)
     const canvasRef = React.useRef(null);
     const requestIdRef = React.useRef(null);
 
-    // cellular automata variables
-    var renderer = new CARender(props.init_loopState, new Vector(props.init_width, props.init_height));
+    // sets default input values
+    var state = {};
+
+    if (props.init_width === undefined)
+    {
+        state.init_width = 500;
+    }
+    else
+    {
+        state.init_width = props.init_width;
+    }
+
+    if (props.init_height === undefined)
+    {
+        state.init_height = 500;
+    }
+    else
+    {
+        state.init_height = props.init_height;
+    }
+
+    if (props.init_loopState === undefined)
+    {
+        state.init_loopState = 2;
+    }
+    else
+    {
+        state.init_loopState = props.init_loopState;
+    }
+
+    // cellular automata
+    var renderer = new CARender(state.init_loopState, new Vector(state.init_width, state.init_height));
+    var userInput = new UserInput(renderer.viewer);
   
     // update function
     const tick = () =>
@@ -23,16 +55,17 @@ export default function CAGrid(props)
             requestIdRef.current = requestAnimationFrame(tick);
     };
   
-    // starts/resumes update loop when the canvas is rendered on screen
+    // acts as ComponentDidMount()
     React.useEffect(() =>
     {
         requestAnimationFrame(tick);
+        userInput.attachEvents(canvasRef.current);
 
-        // garbage collection
+        // acts as ComponentDidUnmount()
         return () => {
             cancelAnimationFrame(requestIdRef.current);
-          };
+        };
     });
   
-    return <canvas ref={canvasRef} width={props.init_width} height={props.init_height}/>;
+    return <canvas id="glCanvas" ref={canvasRef} width={state.init_width} height={state.init_height}/>;
 }

@@ -10,17 +10,37 @@ class UserInput
         UserInput.mouse_grabbing = false;
         UserInput.scrollDivider = 15;
 
-        // only do this if canvas is defined as expected
-        if (canvas !== undefined)
-        {
-            UserInput.attachEvents(canvas);
+        this.eventsDidAttach = false;
+        // this.keybinds = {
+            //     toggle:
+            // }
+            
+            // this.
+            // https://stackoverflow.com/questions/1081499/accessing-an-objects-property-from-an-event-listener-call-in-javascript
+            // https://www.sitepoint.com/javascript-design-patterns-observer-pattern/
+            // https://www.dofactory.com/javascript/design-patterns/observer
+            
+            // only do this if canvas is defined as expected
+            if (canvas !== undefined)
+            {
+                UserInput.attachEvents(canvas);
+            }
         }
-    }
-
+        
     // attaches all events to the given canvas
-    static attachEvents(canvas)
+    attachEvents(canvas)
     {
-        // adds mouse events
+        // skips if events have already been attached
+        if (this.eventsDidAttach)
+        {
+            return;
+        }
+        else
+        {
+            this.eventsDidAttach = true;
+        }
+
+        // attaches events
         canvas.onmousemove = function (event)
         {
             UserInput.mouseMove(event);
