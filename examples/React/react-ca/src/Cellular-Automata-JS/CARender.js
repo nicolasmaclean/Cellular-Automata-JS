@@ -7,6 +7,8 @@ import {
     NSet,
 } from './import';
 
+
+// GAME OF LIFE
 // example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
 // result is the final result. The second element is the new cell state.
 function GameOfLifeRule(neighborsValues, curVal)
@@ -22,21 +24,66 @@ function GameOfLifeRule(neighborsValues, curVal)
     return [result, result ? 1 :  0];
 }
 
+// WIRE WORLD
+// second example that shows how to implement wireworld. There are 4 cell states and I use 4 rules as shown below to implement it.
+
+// background remains background
+function wireWorld1(neighborsValues, curVal)
+{
+    return [curVal === 0, 0];
+}
+
+// electron head becomes electron tail
+function wireWorld2(neighborsValues, curVal)
+{
+    return [curVal === 1, 2];
+}
+
+// electron tail becomes wire
+function wireWorld3(neighborsValues, curVal)
+{
+    return [curVal === 2, 3]
+}
+
+// wire becomes electron head if there electron(s) adjacent
+function wireWorld4(neighborsValues, curVal)
+{
+    // gets live neighbor count
+    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+    liveNeighbors = liveNeighbors.length;
+    
+    // gets the outcome of the rule
+    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+    
+    // formats the output
+    return [curVal === 3, result ? 1 :  3];
+}
+
+// Game of Life and Wire World rules/colors set as static variables for easy default modes
+// live and dead
+var GOLColors = { 0: 'white', 1: 'black' };
+var GOLRules = [GameOfLifeRule];
+
+// background, electron head, electron tail, wire
+var WWColors = {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'};
+var WWRules = [wireWorld1, wireWorld2, wireWorld3, wireWorld4];
+
 class CARender
 {
-    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = { 0: 'white', 1: 'black'}, cellStateAmt = 2, 
-        rules = [ GameOfLifeRule ],
-        init_fps = 10, init_fpsS = 20)
+    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = WWColors, rules = WWRules, init_fps = 10, init_fpsS = 20)
     {
         // configurations
         this.clr_bg = init_clr_bg;
         this.updateState = init_loopState;
+        this.cellColorsLength = Object.keys(cellColors).length;
         
         // initializes simulation
-        this.CellularAutomata = new CellularAutomata(cellStateAmt, cellColors, rules);
+        this.CellularAutomata = new CellularAutomata(Object.keys(cellColors).length, cellColors, rules);
         this.viewer = new Viewer(init_windowSize);
         
-        this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
+        // this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
+        this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
+        this.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)
         
         // FPS controller stuff
         this.fps = init_fps;
@@ -50,14 +97,27 @@ class CARender
 
         // state management
         this.step = false;
-        this.paused = false;
-        this.needDraw = false;
+        this.paused = true;
+        this.needDraw = true;
 
         // input
         this.coordsSet = []; // list of lists that store a coord and value to set at that coord
         this.lineCoordsDone = new NSet(); // stores a set of coords
         this.lineCoordsAdd = new NSet();
 
+        this.drawSpecificState = false;
+        this.drawState = 1;
+    }
+
+    // sets the drawState and clamps values too big
+    setDrawState(val)
+    {
+        this.drawState = val;
+
+        if(this.drawState >= this.cellColorsLength)
+        {
+            this.drawState = this.cellColorsLength-1;
+        }
     }
 
     // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
@@ -188,7 +248,14 @@ class CARender
         // toggles coords in the line that haven't already been processed
         NSet.difference(this.lineCoordsAdd, this.lineCoordsDone).forEach( val => 
         {
-            this.CellularAutomata.cycleCell(val);
+            if (this.drawSpecificState)
+            {
+                this.CellularAutomata.setCell(val, this.drawState);
+            }
+            else
+            {
+                this.CellularAutomata.cycleCell(val);
+            }
         })
 
         // updates the sets

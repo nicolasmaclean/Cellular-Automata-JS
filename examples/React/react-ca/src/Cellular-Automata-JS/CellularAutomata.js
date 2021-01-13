@@ -65,12 +65,15 @@ class CellularAutomata
         for (let rule in this.ruleset) // fix rule iteration stuff here and line 55
         {
             var n = this.ruleset[rule](neighbors, val) 
+            // console.log(neighbors, val, n);
             if (n[0])
             {
+                // console.log(" ");
                 return n[1];
             }
         }
         
+        // console.log(" ");
         return 0;
     }
 

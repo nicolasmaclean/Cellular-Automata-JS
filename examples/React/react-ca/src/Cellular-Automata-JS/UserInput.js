@@ -11,16 +11,17 @@ class UserInput
         this.scrollDivider = init_scrollDivider;
 
         this.keybinds = {
-                pause: "p",         // pauses sim
-                step: " ",          // steps sim once
-                grabCanvas: "o",    // toggle left click between grabbing canvas and drawing cells
+                pause: "p",             // pauses sim
+                step: " ",              // steps sim once
+                grabCanvas: "o",        // toggle left click between grabbing canvas and drawing cells
+                drawSpecificState: "i", // toggles drawing mode between cycle and set to a specific state
         };
 
         // state variables
-        this.mouse_grabbing = false;
         this.eventsDidAttach = false;
-        this.grabCanvas = true;
 
+        this.mouse_grabbing = false;
+        this.grabCanvas = true;
     } 
         
     // attaches all events to the given canvas
@@ -105,7 +106,7 @@ class UserInput
     // attaches all keyboard events
     attachKeyEvents()
     {
-        document.onkeydown = function (event) {
+        document.onkeyup = function (event) {
             if (event.key === this.keybinds.step)
             {
                 this.singleStep();
@@ -117,6 +118,16 @@ class UserInput
             else if (event.key === this.keybinds.grabCanvas && !event.repeat)
             {
                 this.grabCanvasToggle();
+            }
+            else if (event.key === this.keybinds.drawSpecificState && !event.repeat)
+            {
+                this.drawSpecificStateToggle();
+                console.log(this.render.drawSpecificState, this.render.drawState);
+            }
+            else if (UserInput.NUMKEYS.includes(event.key))
+            {
+                this.setSpecificStateHandeler(event);
+                console.log(this.render.drawSpecificState, this.render.drawState);
             }
         }.bind(this);
     }
@@ -241,7 +252,20 @@ class UserInput
     toggleCell(screenCoords)
     {
         var gridCoord = this.render.viewer.screenToGrid(screenCoords);
-        this.render.CellularAutomata.cycleCell(gridCoord);
+
+        // will draw something if nothing has been drawn while the mouse was down
+        if (this.render.lineCoordsDone.size() !== 0)
+        {
+            if (this.render.drawSpecificState)
+            {
+                this.render.CellularAutomata.setCell(gridCoord, this.render.drawState);
+            }
+            else
+            {
+                this.render.CellularAutomata.cycleCell(gridCoord);
+            }
+        }
+        
         this.stopDrawing();
     }
     
@@ -264,12 +288,34 @@ class UserInput
         this.enableCursorStyle();
     }
 
+    // toggles draw mode between cycle cell state and set to specific state
+    drawSpecificStateToggle()
+    {
+        this.render.drawSpecificState = !this.render.drawSpecificState;
+    }
+
+    // wrapper for this.setSpecificState that processes key event
+    setSpecificStateHandeler(event)
+    {
+        this.setSpecificState(event.key);
+    }
+
+    // sets specific draw state
+    setSpecificState(num)
+    {
+        this.render.setDrawState(Number(num));
+    }
+
     // enables cursor styles
     enableCursorStyle()
     {
         if (this.grabCanvas)
         {
             document.body.style.cursor = "grab";
+        }
+        else if (this.render.drawSpecificState)
+        {
+            document.body.style.cursor = "pointer";
         }
         else
         {
@@ -378,5 +424,7 @@ class UserInput
         return coords;
     }
 }
+
+UserInput.NUMKEYS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 export default UserInput;
