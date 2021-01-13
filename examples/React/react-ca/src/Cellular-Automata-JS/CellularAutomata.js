@@ -70,7 +70,7 @@ class CellularAutomata
                 return n[1];
             }
         }
-
+        
         return 0;
     }
 

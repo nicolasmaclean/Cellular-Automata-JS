@@ -25,7 +25,7 @@ function GameOfLifeRule(neighborsValues, curVal)
 class CARender
 {
     constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = { 0: 'white', 1: 'black'}, cellStateAmt = 2, 
-        rules = [ GameOfLifeRule ], 
+        rules = [ GameOfLifeRule ],
         init_fps = 10, init_fpsS = 20)
     {
         // configurations
