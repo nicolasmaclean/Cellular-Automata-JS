@@ -7,16 +7,33 @@ import {
     NSet,
 } from './import';
 
+// example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
+// result is the final result. The second element is the new cell state.
+function GameOfLifeRule(neighborsValues, curVal)
+{
+    // gets live neighbor count
+    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+    liveNeighbors = liveNeighbors.length;
+
+    // gets the outcome of the rule
+    var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+
+    // formats the output
+    return [result, result ? 1 :  0];
+}
+
 class CARender
 {
-    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", init_fps = 10, init_fpsS = 20)
+    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = { 0: 'white', 1: 'black'}, cellStateAmt = 2, 
+        rules = [ GameOfLifeRule ], 
+        init_fps = 10, init_fpsS = 20)
     {
         // configurations
         this.clr_bg = init_clr_bg;
         this.updateState = init_loopState;
         
         // initializes simulation
-        this.CellularAutomata = new CellularAutomata();
+        this.CellularAutomata = new CellularAutomata(cellStateAmt, cellColors, rules);
         this.viewer = new Viewer(init_windowSize);
         
         this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);

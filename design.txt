@@ -153,6 +153,8 @@ ideas
 TODO...
 
 fix viewer.setZoom
-Grid.toggleCell and make grid store Cells not booleans
+X - Grid.toggleCell and make grid store Cells not booleans
+allow different cellStates/colors to be passed through to grid
+allow new rules to be passed to CellularAutomata
 
 --------------------------

@@ -6,12 +6,11 @@ import { Vector } from './import';
 
 class Grid
 {
-    constructor(possibleCellStates = { dead: 0, live: 1 }, cellColors = { 0: 'white', 1: 'black'})
+    constructor(cellStateAmt, cellColors)
     {
         this.mat = new Map();
-        this.cellStates = possibleCellStates; // default cell states are binary
+        this.cellStateAmt = cellStateAmt; // default cell states are binary
         this.cellColors = cellColors;
-        this.cellStatesLength = Object.keys(possibleCellStates).length;
     }
     
     // returns a javascript object with colors storing list of coords
@@ -19,9 +18,9 @@ class Grid
     {
         var batch = {};
         
-        for (let x in this.cellStates)
+        for (let x = 0; x < this.cellStateAmt; x++)
         {
-            batch[this.cellColors[this.cellStates[x]]] = [];
+            batch[this.cellColors[x]] = [];
         }
 
         return batch;
@@ -55,7 +54,6 @@ class Grid
     }
 
     // gets cell value if its a valid key or gets the default value
-    // TODO: replace true with "this.mat[pos]" and replace false with "Cell.defaultValue"
     getCell(pos)
     {
         var str = Grid.tostring(pos);
@@ -74,7 +72,6 @@ class Grid
     }
 
     // sets the value of the cell at pos with val
-    // TODO: tweak the if statement for a more dynamic sparse check
     setCell(pos, val)
     {
         var str = Grid.tostring(pos);
@@ -119,6 +116,18 @@ class Grid
         return neighbors;
     }
 
+    getNeighborsValues(pos)
+    {
+        var neighbors = []
+        
+        for (var x = -1; x <= 1; x++)
+            for (var y = -1; y <= 1; y++)
+                if ((x !== 0 || y !== 0))
+                    neighbors.push(this.getCell(new Vector(pos.x + x, pos.y + y)));
+
+        return neighbors;
+    }
+
     // returns the amount of live neighbors for given cell
     getLiveNeighbors(pos)
     {
@@ -150,8 +159,7 @@ class Grid
     // cycles the requested cell to the next state
     cycleCell(coord)
     {
-        // console.log(this.getCell(coord),  (this.getCell(coord)+1) % this.cellStatesLength)
-        this.setCell( coord, (this.getCell(coord)+1) % this.cellStatesLength);
+        this.setCell( coord, (this.getCell(coord)+1) % this.cellStateAmt);
     }
 }
 

@@ -1,14 +1,14 @@
 // applies given rules using given struct for each cell
 
-import { Grid, ConwayGOL } from './import'
+import { Grid } from './import'
 
 class CellularAutomata
 {
-    constructor()
+    constructor(cellStateAmt, cellColors, rules)
     {
-        this.grid = new Grid();
+        this.grid = new Grid(cellStateAmt, cellColors);
         this.generation = 0;
-        this.ruleset = [ConwayGOL];
+        this.ruleset = rules;
     }
 
     // performs one step of the simulation
@@ -24,22 +24,14 @@ class CellularAutomata
             
             // keeps track of neighbors that will need to be checked
             liveNeighbors.forEach(val => {
-                if(!this.grid.hasCell(val)) // this is still messed up
+                if(!this.grid.hasCell(val))
                 {
                     cellsToCheck.add(Grid.tostring(val));
                 }
             });
             
-            // performs conway's rules to the current cell
-            var neighbors = this.grid.getLiveNeighbors(key);
-            // var nVal = this.getCell(key);
+            var nVal = this.applyRules(key);
 
-            // for (let rule in this.ruleset) // fix rule iteration stuff here and line 55
-            // {
-            //     nVal = rule(neighbors, nVal);
-            // }
-            var nVal = ConwayGOL(neighbors, 1);
-            
             if(nVal !== 0)
             {
                 nMap.set(Grid.tostring(key), nVal);
@@ -50,17 +42,36 @@ class CellularAutomata
         // iterates through the neighbors stored in last foreach loop
         cellsToCheck.forEach(str_key => {
             var key = Grid.unstring(str_key);
-            var neighbors = this.grid.getLiveNeighbors(key);
-            // value = this.grid.getCell(key);
 
-            var nVal = ConwayGOL(neighbors, 0); // TODO: use value if this is not game of life
-            if(nVal)
+            var nVal = this.applyRules(key);
+
+            if(nVal !== 0)
+            {
                 nMap.set(Grid.tostring(key), nVal);
+            }
         });
 
         this.grid.setNewMap(nMap);
-        // this.grid.pruneDefaultValues();
+        this.grid.pruneDefaultValues();
         this.generation++;
+    }
+
+    applyRules(key)
+    {
+        // applies this.rules to each current live cell
+        var neighbors = this.grid.getNeighborsValues(key);
+        var val = this.getCell(key);
+
+        for (let rule in this.ruleset) // fix rule iteration stuff here and line 55
+        {
+            var n = this.ruleset[rule](neighbors, val) 
+            if (n[0])
+            {
+                return n[1];
+            }
+        }
+
+        return 0;
     }
 
     // wrapper functions for sparce matrix access
