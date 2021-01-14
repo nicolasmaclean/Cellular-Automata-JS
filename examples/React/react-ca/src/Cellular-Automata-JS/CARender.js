@@ -7,87 +7,29 @@ import {
     NSet,
 } from './import';
 
-
-// GAME OF LIFE
-// example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
-// result is the final result. The second element is the new cell state.
-function GameOfLifeRule(neighborsValues, curVal)
-{
-    // gets live neighbor count
-    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
-    liveNeighbors = liveNeighbors.length;
-
-    // gets the outcome of the rule
-    var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
-
-    // formats the output
-    return [result, result ? 1 :  0];
-}
-
-// WIRE WORLD
-// second example that shows how to implement wireworld. There are 4 cell states and I use 4 rules as shown below to implement it.
-
-// background remains background
-function wireWorld1(neighborsValues, curVal)
-{
-    return [curVal === 0, 0];
-}
-
-// electron head becomes electron tail
-function wireWorld2(neighborsValues, curVal)
-{
-    return [curVal === 1, 2];
-}
-
-// electron tail becomes wire
-function wireWorld3(neighborsValues, curVal)
-{
-    return [curVal === 2, 3]
-}
-
-// wire becomes electron head if there electron(s) adjacent
-function wireWorld4(neighborsValues, curVal)
-{
-    // gets live neighbor count
-    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
-    liveNeighbors = liveNeighbors.length;
-    
-    // gets the outcome of the rule
-    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
-    
-    // formats the output
-    return [curVal === 3, result ? 1 :  3];
-}
-
-// Game of Life and Wire World rules/colors set as static variables for easy default modes
-// live and dead
-var GOLColors = { 0: 'white', 1: 'black' };
-var GOLRules = [GameOfLifeRule];
-
-// background, electron head, electron tail, wire
-var WWColors = {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'};
-var WWRules = [wireWorld1, wireWorld2, wireWorld3, wireWorld4];
-
 class CARender
 {
-    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = WWColors, rules = WWRules, init_fps = 10, init_fpsS = 20)
+    constructor(configs)
+    // constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", cellColors = WWColors, rules = WWRules, init_fps = 10, init_fpsS = 20)
     {
+        CARender.fillModesInObj(configs);
+
         // configurations
-        this.clr_bg = init_clr_bg;
-        this.updateState = init_loopState;
-        this.cellColorsLength = Object.keys(cellColors).length;
+        this.clr_bg = configs.clr_bg;
+        this.updateState = configs.loopState;
+        this.cellColorsLength = Object.keys(configs.cellColors).length;
         
         // initializes simulation
-        this.CellularAutomata = new CellularAutomata(Object.keys(cellColors).length, cellColors, rules);
-        this.viewer = new Viewer(init_windowSize);
+        this.CellularAutomata = new CellularAutomata(Object.keys(configs.cellColors).length, configs.cellColors, configs.rules);
+        this.viewer = new Viewer(configs.windowSize);
         
         // this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
         this.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
         this.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)
         
         // FPS controller stuff
-        this.fps = init_fps;
-        this.fpsS = init_fpsS;
+        this.fps = configs.fps;
+        this.fpsS = configs.fpsStep;
 
         this.fpsInterval = 1000 / this.fps;
         this.fpsIntervalS = 1000 / this.fpsS;
@@ -97,7 +39,7 @@ class CARender
 
         // state management
         this.step = false;
-        this.paused = true;
+        this.paused = configs.paused;
         this.needDraw = true;
 
         // input
@@ -177,8 +119,15 @@ class CARender
     }
 
     // checks the state of the simulation/render and will step the simulation or render it if necessary. returns true if the update loop should continue.
-    Update(drawContext, DrawCellFunc = CARender.DrawCell, DrawStyleFunc = CARender.DrawStyle, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw)
+    Update(drawContext, configs)
+    // Update(drawContext, DrawCellFunc = CARender.DrawCell, DrawStyleFunc = CARender.DrawStyle, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw)
     {
+        // stores references to configs functions
+        var DrawCellFunc = configs.DrawCellFunc;
+        var DrawStyleFunc = configs.DrawStyleFunc;
+        var PreStepFunc = configs.PreStepFunc;
+        var PostStepFunc = configs.PostStepFunc;
+
         // be careful this will update frame controller
         var renderState = this.checkState(true);
 
@@ -358,7 +307,188 @@ class CARender
     {
         drawContext.fillStyle = clr;
     }
+
+    // fills in missing properties with default values
+    static fillJSObjectBlanks(obj)
+    {
+        var defaultObj = CARender.JSObjectDefault();
+        
+        if (obj.width === undefined) { obj.width = defaultObj.width}
+        if (obj.height === undefined) { obj.height = defaultObj.height}
+        if (obj.windowSize === undefined) { obj.windowSize = new Vector(obj.width, obj.height)}
+        
+        if (obj.x === undefined) { obj.x = defaultObj.x}
+        if (obj.y === undefined) { obj.y = defaultObj.y}
+        if (obj.position === undefined) { obj.position = new Vector(obj.x, obj.y)}
+
+        if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
+        if (obj.rules === undefined) { obj.rules = defaultObj.rules}
+        
+        if (obj.loop === undefined) { obj.loop = defaultObj.loop}
+        if (obj.clr_bg === undefined) { obj.clr_bg = defaultObj.clr_bg}
+        if (obj.fps === undefined) { obj.fps = defaultObj.fps}
+        if (obj.fpsStep === undefined) { obj.fpsStep = defaultObj.fpsStep}
+        if (obj.zoom === undefined) { obj.zoom = defaultObj.zoom}
+        if (obj.maxZoom === undefined) { obj.maxZoom = defaultObj.maxZoom}
+        if (obj.minZoom === undefined) { obj.minZoom = defaultObj.minZoom}
+        if (obj.paused === undefined) { obj.paused = defaultObj.paused}
+
+        if (obj.DrawCellFunc === undefined) { obj.DrawCellFunc = defaultObj.DrawCellFunc}
+        if (obj.DrawStyleFunc === undefined) { obj.DrawStyleFunc = defaultObj.DrawStyleFunc}
+        if (obj.PreStepFunc === undefined) { obj.PreStepFunc = defaultObj.PreStepFunc}
+        if (obj.PostStepFunc === undefined) { obj.PostStepFunc = defaultObj.PostStepFunc}
+    }
+
+    // returns the default configuration
+    static JSObjectDefault()
+    {
+        var obj = {
+            loopState: 2,
+            width: 500,
+            height: 600,
+            windowSize: new Vector(500, 600),
+            clr_bg: "#c0c0c0",
+            cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            fps: 10,
+            fpsStep: 20,
+            x: 0,
+            y: 0,
+            position: new Vector(0, 0),
+            zoom: 1,
+            maxZoom: 9,
+            minZoom: .8,
+            paused: false,
+        
+            DrawCellFunc: CARender.DrawCell,
+            DrawStyleFunc: CARender.DrawStyle,
+            PreStepFunc: CARender.PreStepDraw,
+            PostStepFunc: CARender.PostStepDraw,
+        };
+
+        return obj;
+    }
+
+    // fills in string modes for cell colors and rules. For example, it would convert cellColor: "wire world" into {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'}
+    static fillModesInObj(configs)
+    {
+        // exits if both colors and rules are objects/functions
+        if (typeof configs.cellColors !== "string" && typeof configs.rules !== "string") return;
+        
+        // removes case sensitivity
+        if (typeof configs.cellColors === "string")
+        {
+            configs.cellColors.toLowerCase();
+        }
+
+        if (typeof configs.rules === "string")
+        {
+            configs.rules.toLowerCase();
+        }
+
+        // checks for cell colors
+        if (configs.cellColors === "wire world")
+        {
+            configs.cellColors = {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'};
+        }
+        else if (configs.cellColors === "game of life")
+        {
+            configs.cellColors = {0: 'white', 1: 'black'};
+        }
+
+        if (configs.rules === "wire world")
+        {
+            configs.rules = [
+                (neighborsValues, curVal) => {return [curVal === 0, 0];},
+                (neighborsValues, curVal) => {return [curVal === 1, 2];},
+                (neighborsValues, curVal) => {return [curVal === 2, 3];},
+                (neighborsValues, curVal) => {
+                    // gets live neighbor count
+                    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+                    liveNeighbors = liveNeighbors.length;
+                    
+                    // gets the outcome of the rule
+                    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+                    
+                    // formats the output
+                    return [curVal === 3, result ? 1 :  3];},
+            ];
+        }
+        else if (configs.rules === "game of life")
+        {
+            configs.rules = [ (neighborsValues, curVal) => {
+                // gets live neighbor count
+                var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+                liveNeighbors = liveNeighbors.length;
+
+                // gets the outcome of the rule
+                var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+
+                // formats the output
+                return [result, result ? 1 :  0];
+            }]
+        }
+    }
 }
+
+// GAME OF LIFE
+// example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
+// result is the final result. The second element is the new cell state.
+function GameOfLifeRule(neighborsValues, curVal)
+{
+    // gets live neighbor count
+    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+    liveNeighbors = liveNeighbors.length;
+
+    // gets the outcome of the rule
+    var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+
+    // formats the output
+    return [result, result ? 1 :  0];
+}
+
+// WIRE WORLD
+// second example that shows how to implement wireworld. There are 4 cell states and I use 4 rules as shown below to implement it.
+
+// background remains background
+function wireWorld1(neighborsValues, curVal)
+{
+    return [curVal === 0, 0];
+}
+
+// electron head becomes electron tail
+function wireWorld2(neighborsValues, curVal)
+{
+    return [curVal === 1, 2];
+}
+
+// electron tail becomes wire
+function wireWorld3(neighborsValues, curVal)
+{
+    return [curVal === 2, 3];
+}
+
+// wire becomes electron head if there electron(s) adjacent
+function wireWorld4(neighborsValues, curVal)
+{
+    // gets live neighbor count
+    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+    liveNeighbors = liveNeighbors.length;
+    
+    // gets the outcome of the rule
+    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+    
+    // formats the output
+    return [curVal === 3, result ? 1 :  3];
+}
+
+// Game of Life and Wire World rules/colors set as static variables for easy default modes
+// live and dead
+// var GOLColors = { 0: 'white', 1: 'black' };
+// var GOLRules = [GameOfLifeRule];
+
+// // background, electron head, electron tail, wire
+// var WWRules = [wireWorld1, wireWorld2, wireWorld3, wireWorld4];
 
 // enums
 CARender.renderState = {

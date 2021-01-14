@@ -154,7 +154,33 @@ TODO...
 
 fix viewer.setZoom
 X - Grid.toggleCell and make grid store Cells not booleans
-allow different cellStates/colors to be passed through to grid
-allow new rules to be passed to CellularAutomata
+X - allow different cellStates/colors to be passed through to grid
+X - allow new rules to be passed to CellularAutomata
+design a javascript object that contains CARender parameters to make it easier to make heavy modifications
+allow a file to imported that 'modes' can be selected from
 
 --------------------------
+
+CARender configurations JS object
+
+{
+	loopState: 2,
+	width: 500,
+	height: 600,
+	windowSize: new Vector(width, height),
+	clr_bg: "#c0c0c0",
+	cellColors: wire world, // allow a custom javascript obj of colors, "game of life" or "wireworld" or some other predefined one, or use wireworld as default
+	rules: wire world, // allow a custom array of rule functions, "game of life" or "wireworld" or some other predefined one, or use wireworld as default
+	fps: 10,
+	fpsStep: 20,
+	position = (0, 0),
+	zoom = 1,
+	maxZoom = 9,
+	minZoom = .8,
+	paused = false,
+
+	DrawCellFunc = CARender.DrawCell,
+	DrawStyleFunc = CARender.DrawStyle,
+	PreStepFunc = CARender.PreStepDraw,
+	PostStepFunc = CArender.PostStepDraw,
+}
