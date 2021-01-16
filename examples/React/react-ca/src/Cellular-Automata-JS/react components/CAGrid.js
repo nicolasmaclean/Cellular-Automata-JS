@@ -1,6 +1,6 @@
 import React from 'react';
 import { CARender, UserInput } from '../import';
-import { CAGridData, CAInput } from './import';
+import { CAInput } from './import';
 
 export default class CAGrid extends React.Component
 {
@@ -33,18 +33,18 @@ export default class CAGrid extends React.Component
         // appends requested/necessary elements to be rendereroooo
         var elements = []
         
-        if (this.props.gridDataEnabled)
-        {
-            elements.push(<CAGridData className="CAGridData" ref={this.dataRef} renderRef={this.renderer} key={2}/>);
-        }
-
         if (this.props.gridInputEnabled)
         {
-            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} renderRef={this.renderer} inputRef={this.userInput} key={3}/>);
+            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} renderRef={this.renderer} inputRef={this.userInput} title={this.configs.title} key={3}/>);
         }
         
+        // if (this.props.gridDataEnabled)
+        // {
+        //     elements.push(<CAGridData className="CAGridData" ref={this.dataRef} renderRef={this.renderer} key={2}/>);
+        // }
+        
         this.child = (
-            <div className="flexRow">
+            <div className="flexRow wholeDeal">
                 <canvas className="glCanvas flexItem" ref={this.canvasRef} width={this.configs.width} height={this.configs.height} key={1}/>
                 <div className="CAPerp flexItem">
                     {elements}
@@ -65,13 +65,18 @@ export default class CAGrid extends React.Component
         
         var update = this.renderer.checkState(false);
         var loop = this.renderer.Update(this.draw, this.configs);
-        
+
+        if (this.canvasRef.current.width !== this.renderer.viewer.windowSize.x || this.canvasRef.current.height !== this.renderer.viewer.windowSize.y)
+        {
+
+        }
+
         if (update !== CARender.renderState.nothing)
         {
-            if(this.props.gridDataEnabled)
-            {
-                this.dataRef.current.forceUpdate();
-            }
+            // if(this.props.gridDataEnabled)
+            // {
+            //     this.dataRef.current.forceUpdate();
+            // }
 
             if (this.props.gridInputEnabled)
             {

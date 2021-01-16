@@ -18,6 +18,7 @@ class CARender
         this.clr_bg = configs.clr_bg;
         this.updateState = configs.loopState;
         this.cellColorsLength = Object.keys(configs.cellColors).length;
+        this.stateNames = configs.stateNames;
         
         // initializes simulation
         this.CellularAutomata = new CellularAutomata(Object.keys(configs.cellColors).length, configs.cellColors, configs.rules);
@@ -47,7 +48,7 @@ class CARender
         this.lineCoordsDone = new NSet(); // stores a set of coords
         this.lineCoordsAdd = new NSet();
 
-        this.drawSpecificState = false;
+        this.drawSpecificState = true;
         this.drawState = 1;
     }
 
@@ -326,6 +327,7 @@ class CARender
         if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
         if (obj.rules === undefined) { obj.rules = defaultObj.rules}
         if (obj.stateNames === undefined) { obj.stateNames = defaultObj.stateNames}
+        if (obj.title === undefined) { obj.title = defaultObj.title}
         
         if (obj.loopState === undefined) { obj.loopState = defaultObj.loopState}
         if (obj.clr_bg === undefined) { obj.clr_bg = defaultObj.clr_bg}
@@ -346,17 +348,16 @@ class CARender
     static JSObjectDefault()
     {
         var obj = {
+            title: "Brian Silverman's Wire World",
             cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
             rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
             stateNames: "wire world",
 
-            width: 500,
+            width: 700,
             height: 600,
-            windowSize: new Vector(500, 600),
 
             x: 0,
             y: 0,
-            position: new Vector(0, 0),
 
             loopState: 2,
             clr_bg: "#c0c0c0",
@@ -372,6 +373,9 @@ class CARender
             PreStepFunc: CARender.PreStepDraw,
             PostStepFunc: CARender.PostStepDraw,
         };
+
+        obj.windowSize = new Vector(obj.width, obj.height);
+        obj.position = new Vector(obj.x, obj.y);
 
         return obj;
     }
@@ -445,11 +449,11 @@ class CARender
         // checks for state names
         if (configs.stateNames === "wire world")
         {
-            configs.stateNames = ["background", "electron head", "electron tail", "wire"];
+            configs.stateNames = ["Background", "Electron Head", "Electron Tail", "Wire"];
         }
         else if (configs.stateNames === "game of life")
         {
-            configs.stateNames = ["dead", "alive"];
+            configs.stateNames = ["Dead", "Alive"];
         }
     }
 }

@@ -187,7 +187,7 @@ class UserInput
     // wrapper for this.drawCell() that processes mouse event info
     drawCellsHandeler(e)
     {
-        this.drawCells(new Vector(e.clientX, e.clientY));
+        this.drawCells(new Vector(e.offsetX, e.offsetY));
     }
 
     // wrapper for this.startDrawing that processes mouse event info

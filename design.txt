@@ -159,8 +159,9 @@ X - allow new rules to be passed to CellularAutomata
 X - design a javascript object that contains CARender parameters to make it easier to make heavy modifications
 allow a file to be imported that 'modes' can be selected from or create class template for functions that can be passed through
 update userinput configurations input
-create a data component to display requested CAGrid data
-create a ui component to display and allow interaction with CAGrid.userInput
+in progress - create a ui component to display and allow interaction with CAGrid
+	clear, save, and load need to be added
+	show/allow adjustment of fps
 
 --------------------------
 
