@@ -156,8 +156,11 @@ fix viewer.setZoom
 X - Grid.toggleCell and make grid store Cells not booleans
 X - allow different cellStates/colors to be passed through to grid
 X - allow new rules to be passed to CellularAutomata
-design a javascript object that contains CARender parameters to make it easier to make heavy modifications
-allow a file to imported that 'modes' can be selected from
+X - design a javascript object that contains CARender parameters to make it easier to make heavy modifications
+allow a file to be imported that 'modes' can be selected from or create class template for functions that can be passed through
+update userinput configurations input
+create a data component to display requested CAGrid data
+create a ui component to display and allow interaction with CAGrid.userInput
 
 --------------------------
 

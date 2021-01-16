@@ -122,12 +122,10 @@ class UserInput
             else if (event.key === this.keybinds.drawSpecificState && !event.repeat)
             {
                 this.drawSpecificStateToggle();
-                console.log(this.render.drawSpecificState, this.render.drawState);
             }
             else if (UserInput.NUMKEYS.includes(event.key))
             {
                 this.setSpecificStateHandeler(event);
-                console.log(this.render.drawSpecificState, this.render.drawState);
             }
         }.bind(this);
     }

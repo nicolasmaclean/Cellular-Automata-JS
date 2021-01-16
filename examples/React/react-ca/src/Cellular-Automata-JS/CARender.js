@@ -64,7 +64,7 @@ class CARender
 
     // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
     // returns the update state and advances the update state
-    checkState(updateFPSTracking)
+    checkState(update)
     {
         // frame rate control
         var currentFrame = Date.now();
@@ -76,7 +76,7 @@ class CARender
         // simulation loop
         if (!this.paused && this.updateState === CARender.loopEnum.stepLoop && elapsed > this.fpsInterval)
         {
-            if (updateFPSTracking)
+            if (update)
             {
                 this.lastFrame = currentFrame - (elapsed % this.fpsInterval);
             }
@@ -87,12 +87,11 @@ class CARender
         // single step
         else if ((this.updateState !== CARender.loopEnum.stepLoop || this.paused) && this.step && elapsedS > this.fpsIntervalS) // add a fps controller
         {
-            if (updateFPSTracking)
+            if (update)
             {
                 this.lastFrameS = currentFrameS - (elapsedS % this.fpsIntervalS);
+                this.step = false;
             }
-            
-            this.step = false;
 
             return CARender.renderState.step;
         }
@@ -101,7 +100,10 @@ class CARender
         // draw loop
         else if (((this.paused || this.updateState === CARender.loopEnum.drawLoop) && this.needDraw) || this.needDraw || !this.viewer.targetPos.equals(this.viewer.pos))
         {
-            this.needDraw = false;
+            if (update)
+            {
+                this.needDraw = false;
+            }
             return CARender.renderState.draw;
         }
 
@@ -323,8 +325,9 @@ class CARender
 
         if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
         if (obj.rules === undefined) { obj.rules = defaultObj.rules}
+        if (obj.stateNames === undefined) { obj.stateNames = defaultObj.stateNames}
         
-        if (obj.loop === undefined) { obj.loop = defaultObj.loop}
+        if (obj.loopState === undefined) { obj.loopState = defaultObj.loopState}
         if (obj.clr_bg === undefined) { obj.clr_bg = defaultObj.clr_bg}
         if (obj.fps === undefined) { obj.fps = defaultObj.fps}
         if (obj.fpsStep === undefined) { obj.fpsStep = defaultObj.fpsStep}
@@ -343,18 +346,22 @@ class CARender
     static JSObjectDefault()
     {
         var obj = {
-            loopState: 2,
+            cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            stateNames: "wire world",
+
             width: 500,
             height: 600,
             windowSize: new Vector(500, 600),
-            clr_bg: "#c0c0c0",
-            cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            fps: 10,
-            fpsStep: 20,
+
             x: 0,
             y: 0,
             position: new Vector(0, 0),
+
+            loopState: 2,
+            clr_bg: "#c0c0c0",
+            fps: 10,
+            fpsStep: 20,
             zoom: 1,
             maxZoom: 9,
             minZoom: .8,
@@ -386,6 +393,11 @@ class CARender
             configs.rules.toLowerCase();
         }
 
+        if (typeof configs.stateNames === "string")
+        {
+            configs.stateNames.toLowerCase();
+        }
+
         // checks for cell colors
         if (configs.cellColors === "wire world")
         {
@@ -396,6 +408,7 @@ class CARender
             configs.cellColors = {0: 'white', 1: 'black'};
         }
 
+        // checks for rules
         if (configs.rules === "wire world")
         {
             configs.rules = [
@@ -428,59 +441,69 @@ class CARender
                 return [result, result ? 1 :  0];
             }]
         }
+
+        // checks for state names
+        if (configs.stateNames === "wire world")
+        {
+            configs.stateNames = ["background", "electron head", "electron tail", "wire"];
+        }
+        else if (configs.stateNames === "game of life")
+        {
+            configs.stateNames = ["dead", "alive"];
+        }
     }
 }
 
 // GAME OF LIFE
 // example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
 // result is the final result. The second element is the new cell state.
-function GameOfLifeRule(neighborsValues, curVal)
-{
-    // gets live neighbor count
-    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
-    liveNeighbors = liveNeighbors.length;
+// function GameOfLifeRule(neighborsValues, curVal)
+// {
+//     // gets live neighbor count
+//     var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+//     liveNeighbors = liveNeighbors.length;
 
-    // gets the outcome of the rule
-    var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+//     // gets the outcome of the rule
+//     var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
 
-    // formats the output
-    return [result, result ? 1 :  0];
-}
+//     // formats the output
+//     return [result, result ? 1 :  0];
+// }
 
 // WIRE WORLD
 // second example that shows how to implement wireworld. There are 4 cell states and I use 4 rules as shown below to implement it.
 
 // background remains background
-function wireWorld1(neighborsValues, curVal)
-{
-    return [curVal === 0, 0];
-}
+// function wireWorld1(neighborsValues, curVal)
+// {
+//     return [curVal === 0, 0];
+// }
 
 // electron head becomes electron tail
-function wireWorld2(neighborsValues, curVal)
-{
-    return [curVal === 1, 2];
-}
+// function wireWorld2(neighborsValues, curVal)
+// {
+//     return [curVal === 1, 2];
+// }
 
 // electron tail becomes wire
-function wireWorld3(neighborsValues, curVal)
-{
-    return [curVal === 2, 3];
-}
+// function wireWorld3(neighborsValues, curVal)
+// {
+//     return [curVal === 2, 3];
+// }
 
 // wire becomes electron head if there electron(s) adjacent
-function wireWorld4(neighborsValues, curVal)
-{
-    // gets live neighbor count
-    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
-    liveNeighbors = liveNeighbors.length;
+// function wireWorld4(neighborsValues, curVal)
+// {
+//     // gets live neighbor count
+//     var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+//     liveNeighbors = liveNeighbors.length;
     
-    // gets the outcome of the rule
-    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+//     // gets the outcome of the rule
+//     var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
     
-    // formats the output
-    return [curVal === 3, result ? 1 :  3];
-}
+//     // formats the output
+//     return [curVal === 3, result ? 1 :  3];
+// }
 
 // Game of Life and Wire World rules/colors set as static variables for easy default modes
 // live and dead
