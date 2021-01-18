@@ -1,4 +1,5 @@
 import React from 'react';
+import CARender from '../CARender';
 import { JSONConverter } from '../import';
 
 export default class CAInput extends React.Component
@@ -12,6 +13,7 @@ export default class CAInput extends React.Component
         var pausedText = renderer.configs.paused ? "Paused" : "Playing";
         var grabText = input.grabCanvas ? "Move" : "Draw";
         var states = [];
+        var rules = [];
 
         for (let color in grid.cellColors)
         {
@@ -25,6 +27,17 @@ export default class CAInput extends React.Component
                     }>
                     </div>
                     <h3 className="cellStateName"> {renderer.configs.stateNames[color]}</h3>
+                </div>
+            );
+        }
+
+        for (let rule in renderer.configs.ruleDescriptions)
+        {
+            rules.push(
+                <div className="ruleDescription">
+                    <h3 className="rule">
+                        {renderer.configs.ruleDescriptions[rule]}
+                    </h3>
                 </div>
             );
         }
@@ -71,7 +84,7 @@ export default class CAInput extends React.Component
 
                     {/* load a previous save */}
                     <div className="flexRow contentLeft">
-                        <button className="button load" onClick={ () => { console.log(document.querySelector("#CAFileUpload").files[0]); JSONConverter.LoadCARender(renderer, document.querySelector("#CAFileUpload").files[0]); this.forceUpdate(); } }>
+                        <button className="button load" onClick={ () => { JSONConverter.LoadCARender(renderer, document.querySelector("#CAFileUpload").files[0]); this.forceUpdate(); } }>
                             Load
                         </button>
                         <input type="file" className={"file"} id="CAFileUpload" accept="application/json"/>
@@ -80,10 +93,18 @@ export default class CAInput extends React.Component
                         </button>
                     </div>
 
+                    {/* file input display */}
                     <div className="onePaddingLeft">
                         <h2>
                             {document.querySelector("#CAFileUpload") && document.querySelector("#CAFileUpload").files.length !== 0 ? document.querySelector("#CAFileUpload").files[0].name : "No File Selected"}
                         </h2>
+                    </div>
+
+                    <div>
+                        <h2>
+                            Rules
+                        </h2>
+                        {rules}
                     </div>
                 </div>
             </div>

@@ -31,9 +31,13 @@ class CARender
         // initializes simulation
         this.configs.CellularAutomata = new CellularAutomata(this.configs);
         
-        // this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
-        this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
-        this.configs.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)
+        if (this.configs.mode === "game of life")
+            this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
+        if (this.configs.mode === "wire world")
+        {
+            this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
+            this.configs.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)
+        }
         
         // state management
         this.step = false;
@@ -63,12 +67,6 @@ class CARender
         this.configs.paused = obj.paused;
         this.configs.drawSpecificState = obj.drawSpecificState;
         this.configs.drawState = obj.drawState;
-
-        // prevents this.configs.windowSize changing
-        // obj.viewer.this.configs.windowSize = this.configs.windowSize;
-        // this.viewer = obj.viewer;
-        // console.log(obj.viewer)
-        // this.viewer = new Viewer(this.configs.windowSize, obj.viewer.pos, obj.viewer.zoom, obj.viewer.lerpFactor, obj.viewer.maxZoom, obj.viewer.minZoom);
     }
 
     // sets the drawState and clamps values too big
@@ -204,6 +202,9 @@ class CARender
                 var cy = y*this.viewer.cellSize + this.viewer.pos.y;
                 var val = this.configs.CellularAutomata.getCell(new Vector(x, y));
                 var clr = this.configs.CellularAutomata.grid.cellColors[val];
+
+                if (val === undefined || clr === undefined)
+                    console.log(val, clr, x, y, cx, cy)
                 
                 cells[clr].push(new Vector(cx, cy));
             }
@@ -341,12 +342,15 @@ class CARender
         if (obj.y === undefined) { obj.y = defaultObj.y}
         if (obj.position === undefined) { obj.position = new Vector(obj.x, obj.y)}
 
-        if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
-        if (obj.rules === undefined) { obj.rules = defaultObj.rules}
-        if (obj.stateNames === undefined) { obj.stateNames = defaultObj.stateNames}
-        if (obj.title === undefined) { obj.title = defaultObj.title}
+        // if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
+        // if (obj.rules === undefined) { obj.rules = defaultObj.rules}
+        // if (obj.stateNames === undefined) { obj.stateNames = defaultObj.stateNames}
+        // if (obj.ruleDescriptions === undefined) { obj.ruleDescriptions = defaultObj.ruleDescriptions}
+        // if (obj.title === undefined) { obj.title = defaultObj.title}
+        if (obj.mode === undefined) { obj.mode = defaultObj.mode; }
+
         if (obj.generation === undefined) { obj.generation = defaultObj.generation}
-        if (obj.CellularAutomata === undefined) { obj.CellularAutomata = defaultObj.CellularAutomata}
+        // if (obj.CellularAutomata === undefined) { obj.CellularAutomata = defaultObj.CellularAutomata}
         if (obj.clr_bg === undefined) { obj.clr_bg = defaultObj.clr_bg}
         
         if (obj.loopState === undefined) { obj.loopState = defaultObj.loopState}
@@ -371,10 +375,12 @@ class CARender
     static JSObjectDefault()
     {
         var obj = {
-            title: "Brian Silverman's Wire World",
-            cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            stateNames: "wire world",
+            // title: "Brian Silverman's Wire World",
+            // cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            // rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
+            // stateNames: "wire world",
+            // ruleDescriptions: "wire world",
+            mode: "wire world",
             generation: 0,
 
             width: 700,
@@ -423,7 +429,7 @@ class CARender
 
         obj.windowSize = new Vector(obj.width, obj.height);
         obj.position = new Vector(obj.x, obj.y);
-        obj.CellularAutomata = new CellularAutomata(obj);
+        // obj.CellularAutomata = new CellularAutomata(obj);
 
         return obj;
     }
@@ -431,23 +437,36 @@ class CARender
     // fills in string modes for cell colors and rules. For example, it would convert cellColor: "wire world" into {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'}
     static fillModesInObj(configs)
     {
-        // exits if both colors and rules are objects/functions
-        if (typeof configs.cellColors !== "string" && typeof configs.rules !== "string") return;
-        
-        // removes case sensitivity
-        if (typeof configs.cellColors === "string")
+        if (CARender.prebuiltModes.includes(configs.mode))
         {
-            configs.cellColors.toLowerCase();
+            configs.title = configs.mode;
+            configs.cellColors = configs.mode;
+            configs.rules = configs.mode;
+            configs.stateNames = configs.mode;
+            configs.ruleDescriptions = configs.mode;
         }
-
-        if (typeof configs.rules === "string")
+        else
         {
-            configs.rules.toLowerCase();
-        }
+            // removes case sensitivity
+            if (typeof configs.cellColors === "string")
+            {
+                configs.cellColors.toLowerCase();
+            }
 
-        if (typeof configs.stateNames === "string")
-        {
-            configs.stateNames.toLowerCase();
+            if (typeof configs.rules === "string")
+            {
+                configs.rules.toLowerCase();
+            }
+
+            if (typeof configs.stateNames === "string")
+            {
+                configs.stateNames.toLowerCase();
+            }
+
+            if (typeof configs.ruleDescriptions === "string")
+            {
+                configs.stateNames.toLowerCase();
+            }
         }
 
         // checks for cell colors
@@ -502,6 +521,34 @@ class CARender
         else if (configs.stateNames === "game of life")
         {
             configs.stateNames = ["Dead", "Alive"];
+        }
+
+        // checks for title
+        if (configs.title === "wire world")
+        {
+            configs.title = "Brian Silverman's Wire World";
+        }
+        else if (configs.title === "game of life")
+        {
+            configs.title = "Conway's Game of Life";
+        }
+
+        // checks for rule descriptions
+        if (configs.ruleDescriptions === "wire world")
+        {
+            configs.ruleDescriptions = ["background ALWAYS remain background", 
+                "electron head becomes electron tail", 
+                "electron tail becomes wire", 
+                "wire becomes electron head IF there are 1 or 2 neighboring electron heads"
+            ];
+        }
+        else if (configs.ruleDescriptions === "game of life")
+        {
+            configs.ruleDescriptions = ["(over population) live cells with 4 or more live neighbors \'dies\'",
+                "(under population) live cells with less than 2 live neighbors \'dies\'",
+                "(birth) dead cells with 3 live neighbors become alive",
+                "live cells with 2 or 3 neighbors remain alive",
+            ];
         }
     }
 }
@@ -579,5 +626,10 @@ CARender.loopEnum = {
     stepLoop: 2,
     step: 3
 }
+
+CARender.prebuiltModes = [
+    "game of life",
+    "wire world",
+]
 
 export default CARender;

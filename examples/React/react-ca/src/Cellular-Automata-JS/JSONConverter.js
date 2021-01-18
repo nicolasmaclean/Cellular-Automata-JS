@@ -34,7 +34,6 @@ export default class JSONConverter
             // CellularAutomata.grid.mat is packaged as a json and then stringified
             if (value instanceof CellularAutomata)
             {
-                console.log(value.grid.mat)
                 return '_CellAu_' + JSON.stringify(JSONConverter.packageMapByState(value.grid.mat, Object.keys(obj.cellColors).length));
             }
             
