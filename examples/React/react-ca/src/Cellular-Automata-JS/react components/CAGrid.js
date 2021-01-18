@@ -16,6 +16,7 @@ export default class CAGrid extends React.Component
         
         // processes configurations
         this.configs = props.configs
+        this.ogConfigs = Object.assign({}, props.configs);
         
         if (this.configs === undefined)
         {
@@ -35,7 +36,7 @@ export default class CAGrid extends React.Component
         
         if (this.props.gridInputEnabled)
         {
-            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} renderRef={this.renderer} inputRef={this.userInput} key={3}/>);
+            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} parentRef={this} key={3} />);
         }
         
             this.child = (
@@ -63,23 +64,23 @@ export default class CAGrid extends React.Component
         
         if (update !== CARender.renderState.nothing)
         {
-                if (this.props.gridInputEnabled)
-                {
-                    this.inputRef.current.forceUpdate();
-                }
+            if (this.props.gridInputEnabled)
+            {
+                this.inputRef.current.forceUpdate();
             }
-            
-            if (loop)
-            this.requestIdRef.current = requestAnimationFrame(this.tick.bind(this));
         }
+            
+        if (loop)
+            this.requestIdRef.current = requestAnimationFrame(this.tick.bind(this));
+    }
         
         // animation cycle begins after the first render or once the canvas brought back on the screen
     componentDidMount()
     {
         this.draw = this.canvasRef.current.getContext('2d');
+        this.userInput.attachEvents(this.canvasRef.current);
         requestAnimationFrame(this.tick.bind(this));
 
-        this.userInput.attachEvents(this.canvasRef.current);
     }
 
     // stops animation cycle when the canvas is destroyed or taken off screen

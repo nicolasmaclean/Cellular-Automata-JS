@@ -4,7 +4,7 @@ import { Vector } from './import'
 
 class Viewer
 {
-    constructor(configs, init_pos = new Vector(0, 0), init_zoom = 1, init_lerpFactor = .2, init_maxZoom = 9, init_minZoom = .8)
+    constructor(configs)
     {
         this.configs = configs;
 
@@ -12,17 +12,17 @@ class Viewer
         this.pos = new Vector(0, 0); // move to input pos instantly 
         this.targetPos = this.pos.copy();
         
-        this.zoom = init_zoom;
-        this.maxZoom = init_maxZoom;
-        this.minZoom = init_minZoom;
+        this.zoom = configs.zoom;
+        this.maxZoom = configs.maxZoom;
+        this.minZoom = configs.minZoom;
         
         // config
-        this.lerpFactor = init_lerpFactor;
+        this.lerpFactor = .2;
         this.defaultCellSize = 10;
         this.cellSize = this.defaultCellSize * this.zoom;
         
         // moves to given position
-        this.moveToPosInstant(init_pos);
+        this.moveToPosInstant(configs.position);
     }
 
     // TODO: this sucks ass. Fix it.
@@ -107,8 +107,9 @@ class Viewer
     // instant move viewer.pos to given grid coord
     moveToPosInstant(vector)
     {
-        var nPos = this.translateCoordToCenterScreen(vector);
-        nPos = this.gridToScreen(nPos);
+        // var nPos = this.translateCoordToCenterScreen(vector);
+        // var nPos = this.gridToScreen(vector);
+        var nPos = vector;
         this.targetPos = nPos;
         this.pos = nPos;
     }

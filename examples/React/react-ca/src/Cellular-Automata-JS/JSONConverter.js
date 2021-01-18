@@ -173,17 +173,22 @@ export default class JSONConverter
 
         if (true)//JSONConverter.checkFile(json))
         {
-            json.text();
+            json.text(); // begins asynchronous call to load json
             json.text().then( (text) => 
             {
                 var obj = JSONConverter.JSONToJS(text);
-
-                var map = obj.CellularAutomata;
-                obj.CellularAutomata = new CellularAutomata(obj);
-                obj.CellularAutomata.grid.setNewMap(map);
-
-                render.ReInstantiate(obj);
+                JSONConverter.LoadCARenderFromObj(render, obj)
             })
         }
+    }
+    
+    // resets simulation with new configs object
+    static LoadCARenderFromObj(render, obj)
+    {
+        var map = obj.CellularAutomata;
+        obj.CellularAutomata = new CellularAutomata(obj);
+        obj.CellularAutomata.grid.setNewMap(map);
+    
+        render.ReInstantiate(obj);
     }
 }

@@ -429,6 +429,11 @@ class CARender
 
         obj.windowSize = new Vector(obj.width, obj.height);
         obj.position = new Vector(obj.x, obj.y);
+        
+        var centerOffset = Vector.div_int(obj.windowSize, obj.zoom * 10);
+        centerOffset.div_int(2);
+        obj.position.add(centerOffset);
+        // console.log(obj.position.x, obj.position.y);
         // obj.CellularAutomata = new CellularAutomata(obj);
 
         return obj;
@@ -544,8 +549,8 @@ class CARender
         }
         else if (configs.ruleDescriptions === "game of life")
         {
-            configs.ruleDescriptions = ["(over population) live cells with 4 or more live neighbors \'dies\'",
-                "(under population) live cells with less than 2 live neighbors \'dies\'",
+            configs.ruleDescriptions = ["(over population) live cells with 4 or more live neighbors 'dies'",
+                "(under population) live cells with less than 2 live neighbors 'dies'",
                 "(birth) dead cells with 3 live neighbors become alive",
                 "live cells with 2 or 3 neighbors remain alive",
             ];

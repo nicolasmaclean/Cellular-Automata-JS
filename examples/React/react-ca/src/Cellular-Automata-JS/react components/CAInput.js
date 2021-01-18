@@ -1,12 +1,25 @@
 import React from 'react';
-import { JSONConverter } from '../import';
+import { JSONConverter, CARender } from '../import';
 
 export default class CAInput extends React.Component
 {
+    constructor(props)
+    {
+        super(props);
+        var i = CARender.prebuiltModes.indexOf(props.parentRef.renderer.configs.mode);
+        this.state = {
+            mode: i === -1 ? CARender.prebuiltModes.length : i,
+            modeLength: i === -1 ? CARender.prebuiltModes.length+1 : CARender.prebuiltModes.length,
+        }
+
+        // this.modes = {};
+        // this.modes[this.state.mode] = props.parentRef.renderer;
+    }
+
     render()
     {
-        var renderer = this.props.renderRef;
-        var input = this.props.inputRef;
+        var renderer = this.props.parentRef.renderer;
+        var input = this.props.parentRef.userInput;
         var grid = renderer.configs.CellularAutomata.grid;
 
         var pausedText = renderer.configs.paused ? "Paused" : "Playing";
@@ -49,7 +62,58 @@ export default class CAInput extends React.Component
             <div className="gridInput">
                 <div className="flexRow">
                     <h1 className="title"> {renderer.configs.title} </h1>
-                    <button className="arrowButton" onClick={ () => {console.log("switch mode")} }></button>
+                    <button className="arrowButton" onClick={ () =>
+                    {
+                        // increments mode and prevents overflow
+                        var m = this.state.mode+1;
+                        m %= this.state.modeLength;
+                        
+                        var obj;
+                        var tMap;
+                        
+                        // uses ogConfigs when it is the og mode
+                        if (m === this.state.modeLength-1)
+                        {
+                            obj = this.props.parentRef.ogConfigs;
+                            tMap = obj.CellularAutomata.grid.mat;
+                        }
+
+                        // creates configs for prebuilt mode
+                        else
+                        {
+                            if (m === 0)
+                            {
+                                this.props.parentRef.ogConfigs = Object.assign({}, this.props.parentRef.configs);
+                                this.props.parentRef.ogConfigs.position = renderer.viewer.pos;
+                                this.props.parentRef.ogConfigs.zoom = renderer.viewer.zoom;
+                            }
+                            
+                            obj = {
+                                width: this.props.parentRef.ogConfigs.width,
+                                height: this.props.parentRef.ogConfigs.height,
+                                mode: CARender.prebuiltModes[m],
+                            }
+                            
+                            CARender.fillJSObjectBlanks(obj);
+                            CARender.fillModesInObj(obj);
+                        }
+                        
+                        // sets the new mode
+                        this.props.parentRef.configs = obj;
+                        this.props.parentRef.renderer = new CARender(obj);
+                        this.props.parentRef.userInput.ReInitialize(this.props.parentRef.renderer, this.props.parentRef.renderer.viewer)
+                        
+                        // grabs map data from og mode
+                        if (m === this.state.modeLength-1)
+                        {
+                            this.props.parentRef.renderer.configs.CellularAutomata.grid.setNewMap(tMap)
+                        }
+                        
+                        // updates the mode state
+                        this.setState({
+                            mode: m
+                        }) 
+                    }}></button>
                 </div>
 
                 <div className="grid">
@@ -79,7 +143,7 @@ export default class CAInput extends React.Component
                             {grabText}
                         </button>
 
-                        <button className={"button clear"} onClick={ () => {this.props.renderRef.Instantiate(); renderer.configs.generation = 0; this.forceUpdate()}}>
+                        <button className={"button clear"} onClick={ () => {renderer.Instantiate(); renderer.configs.generation = 0; this.forceUpdate()}}>
                             Clear
                         </button>
 

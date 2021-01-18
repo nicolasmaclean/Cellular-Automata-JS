@@ -7,7 +7,7 @@ class UserInput
     {
         // instantance variables
         this.render = render;
-        this.render.viewer = render.viewer;
+        this.viewer = render.viewer;
         this.scrollDivider = init_scrollDivider;
 
         this.keybinds = {
@@ -22,7 +22,13 @@ class UserInput
 
         this.mouse_grabbing = false;
         this.grabCanvas = true;
-    } 
+    }
+
+    ReInitialize(render, viewer)
+    {
+        this.render = render;
+        this.viewer = viewer;
+    }
         
     // attaches all events to the given canvas
     attachEvents(canvas, attachKey = true, attachMouse = true)
@@ -159,7 +165,7 @@ class UserInput
     // moves viewer position by given movement vector
     moveGrid(movement)
     {
-        this.render.viewer.targetPos.add(new Vector(movement.x, movement.y));
+        this.viewer.targetPos.add(new Vector(movement.x, movement.y));
         this.render.needDraw = true;
     }
     
@@ -184,7 +190,7 @@ class UserInput
     // zooms in and out
     zoom(inc)
     {
-        this.render.viewer.addZoom(inc)
+        this.viewer.addZoom(inc)
         this.render.needDraw = true;
     }
 
@@ -203,7 +209,7 @@ class UserInput
     // draws the first cell in a line
     startDrawing(screenCoord)
     {
-        this.render.lineCoordsAdd.add(this.render.viewer.screenToGrid(screenCoord));
+        this.render.lineCoordsAdd.add(this.viewer.screenToGrid(screenCoord));
         this.render.needDraw = true;
     }
 
@@ -212,7 +218,7 @@ class UserInput
     {
         // copies input and converts to grid space
         var coord = new Vector(screenCoord.x, screenCoord.y);
-        coord = this.render.viewer.screenToGrid(coord);
+        coord = this.viewer.screenToGrid(coord);
 
         // catches cells that were skipped by the mousemove event
         if (this.render.lineCoordsDone.size() !== 0)
@@ -253,7 +259,7 @@ class UserInput
     // toggles given cell
     toggleCell(screenCoords)
     {
-        var gridCoord = this.render.viewer.screenToGrid(screenCoords);
+        var gridCoord = this.viewer.screenToGrid(screenCoords);
 
         // will draw something if nothing has been drawn while the mouse was down
         if (this.render.lineCoordsDone.size() !== 0)
