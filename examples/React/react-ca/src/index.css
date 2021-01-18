@@ -1,11 +1,22 @@
 *
 {
     font-family: 'Ubuntu Mono', monospace;
+    background-color: var(--background);
+}
+
+h1, h2, h3, p, button
+{
+    color: var(--text)
 }
 
 :root
 {
-    --background: rgb(192, 192, 192);
+    --background: white;
+    --text: black;
+    /* --background: black;
+    --text: white; */
+
+    --gridBg: rgb(192, 192, 192);
     --pause: rgb(252, 141, 93);
     --play: rgb(159, 252, 93);
     --turq: rgb(93, 252, 207);
@@ -51,7 +62,7 @@
     grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
-/* Transparent background, bordered button */
+/* Transparent gridBg, bordered button */
 .button
 {
     font-size: 1.7em;
@@ -132,7 +143,7 @@
     height: 2em;
     border: 2px;
     border-style: solid;
-    border-color: var(--background);
+    border-color: var(--gridBg);
     cursor:pointer
 }
 
@@ -218,4 +229,19 @@
 input.file
 {
     display: none;
+}
+
+.arrowButton
+{
+    height: 0;
+    width: 0;
+    margin-top: 2em;
+    margin-left: 1em;
+    
+    border-left: 15px solid var(--text);
+    border-right: 15px solid var(--background);
+    border-top: 15px solid  var(--background);
+    border-bottom: 15px solid  var(--background);
+
+    cursor: pointer;
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import CARender from '../CARender';
 import { JSONConverter } from '../import';
 
 export default class CAInput extends React.Component
@@ -14,11 +13,13 @@ export default class CAInput extends React.Component
         var grabText = input.grabCanvas ? "Move" : "Draw";
         var states = [];
         var rules = [];
+        
+        var key = 0;
 
         for (let color in grid.cellColors)
         {
             states.push(
-                <div className="cellState flexCol" key={0-color}>
+                <div className="cellState flexCol" key={0-key}>
                     <div className="cellStateBackground" style={{
                         backgroundColor: grid.cellColors[color]
                     }}
@@ -29,22 +30,27 @@ export default class CAInput extends React.Component
                     <h3 className="cellStateName"> {renderer.configs.stateNames[color]}</h3>
                 </div>
             );
+            key++
         }
-
+        
         for (let rule in renderer.configs.ruleDescriptions)
         {
             rules.push(
-                <div className="ruleDescription">
+                <div className="ruleDescription" key ={0-key}>
                     <h3 className="rule">
                         {renderer.configs.ruleDescriptions[rule]}
                     </h3>
                 </div>
             );
+            key++
         }
 
         return (
             <div className="gridInput">
-                <h1 className="title"> {renderer.configs.title} </h1>
+                <div className="flexRow">
+                    <h1 className="title"> {renderer.configs.title} </h1>
+                    <button className="arrowButton" onClick={ () => {console.log("switch mode")} }></button>
+                </div>
 
                 <div className="grid">
                     {/* State Draw Picker */}

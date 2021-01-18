@@ -40,12 +40,12 @@ export default class CAGrid extends React.Component
         
             this.child = (
                 <div className="flexRow wholeDeal">
-                <canvas className="glCanvas flexItem" ref={this.canvasRef} width={this.configs.width} height={this.configs.height} key={1}/>
-                <div className="CAPerp flexItem">
-                    {elements}
+                    <canvas className="glCanvas flexItem" ref={this.canvasRef} width={this.configs.width} height={this.configs.height} key={1}/>
+                    <div className="CAPerp flexItem">
+                        {elements}
+                    </div>
                 </div>
-            </div>
-        );
+            );
         
         this.state = {
             needDraw: 0,

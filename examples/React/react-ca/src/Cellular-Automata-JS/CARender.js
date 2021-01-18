@@ -31,9 +31,9 @@ class CARender
         // initializes simulation
         this.configs.CellularAutomata = new CellularAutomata(this.configs);
         
-        if (this.configs.mode === "game of life")
+        if (this.configs.cellColors === "game of life")
             this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
-        if (this.configs.mode === "wire world")
+        if (this.configs.cellColors === "wire world")
         {
             this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
             this.configs.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)

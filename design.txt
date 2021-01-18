@@ -213,6 +213,4 @@ CA-JS-timeStamp.JSON:
 		drawSpecificState
 		drawState
 
-	move into configs
-		cells and their states
 	this.viewer, maybe not actually ??
