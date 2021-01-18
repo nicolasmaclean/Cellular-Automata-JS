@@ -9,7 +9,11 @@ var cellAutoGridRef = React.createRef();
 
 var obj = {
     width: 700,
-    height: 800,
+    height: 600,
+    cellColors: "game of life",
+    rules: "game of life",
+    stateNames: "game of life",
+    title: "Conway's Game of Life",
 }
 
 var cellAutoGrid = <CAGrid configs={obj} ref={cellAutoGridRef} gridDataEnabled={true} gridInputEnabled={true}/>;

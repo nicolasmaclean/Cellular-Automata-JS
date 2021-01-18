@@ -8,10 +8,13 @@
     --background: rgb(192, 192, 192);
     --pause: rgb(252, 141, 93);
     --play: rgb(159, 252, 93);
-    --blue: rgb(93, 252, 207);
+    --turq: rgb(93, 252, 207);
     --purple: rgb(212, 93, 252);
     --pink: rgb(252, 93, 191);
-    --yellow: rgb(252, 239, 99)
+    --yellow: rgb(252, 239, 99);
+    --blue: rgb(93, 225, 252);
+    --mint: rgb(93, 252, 125);
+
 }
 
 .flexRow
@@ -57,7 +60,7 @@
     margin: .8em .2em .1em .2em;
     
     border-style: solid;
-    border-color: var(--blue);
+    border-color: var(--turq);
     background-color: transparent;
     transition: background-color .5s;
     justify-self: center;
@@ -67,7 +70,7 @@
 
 .button:hover
 {
-    background-color: var(--blue);
+    background-color: var(--turq);
 }
 
 /* fade in */
@@ -184,3 +187,39 @@
 {
     background-color: var(--pink);
 }
+
+.button.save
+{
+    border-color: var(--mint);
+}
+
+.button.save:hover
+{
+    background-color: var(--mint);
+}
+
+.button.load
+{
+    border-color: var(--blue);
+}
+
+.button.load:hover
+{
+    background-color: var(--blue);
+}
+
+/* save file upload */
+/* .button.upload
+{
+    display: inline-block;
+    overflow: hidden;
+    position: relative;
+}
+
+input.upload
+{
+    opacity: 0;
+    position: relative;
+    top: -100;
+    left: 0;
+} */

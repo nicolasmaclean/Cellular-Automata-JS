@@ -6,10 +6,10 @@ import { Vector } from './import';
 
 class Grid
 {
-    constructor(cellStateAmt, cellColors)
+    constructor(cellColors)
     {
         this.mat = new Map();
-        this.cellStateAmt = cellStateAmt; // default cell states are binary
+        this.cellStateAmt = Object.keys(cellColors).length; // default cell states are binary
         this.cellColors = cellColors;
     }
     
@@ -59,7 +59,9 @@ class Grid
         var str = Grid.tostring(pos);
         
         if (this.hasCell(pos))
+        {
             return this.mat.get(str);
+        }
         else
             return 0;
     }

@@ -16,7 +16,7 @@ export default class CAGrid extends React.Component
         
         // processes configurations
         this.configs = props.configs
-
+        
         if (this.configs === undefined)
         {
             this.configs = CARender.JSObjectDefault();
@@ -25,26 +25,26 @@ export default class CAGrid extends React.Component
         {
             CARender.fillJSObjectBlanks(this.configs)
         }
-
+        
         // cellular automata
         this.renderer = new CARender(this.configs);
         this.userInput = new UserInput(this.renderer);
-
+        
         // appends requested/necessary elements to be rendereroooo
         var elements = []
         
         if (this.props.gridInputEnabled)
         {
-            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} renderRef={this.renderer} inputRef={this.userInput} title={this.configs.title} key={3}/>);
+            elements.push(<CAInput className ="CAGridInput" ref={this.inputRef} renderRef={this.renderer} inputRef={this.userInput} key={3}/>);
         }
         
         // if (this.props.gridDataEnabled)
         // {
-        //     elements.push(<CAGridData className="CAGridData" ref={this.dataRef} renderRef={this.renderer} key={2}/>);
-        // }
-        
-        this.child = (
-            <div className="flexRow wholeDeal">
+            //     elements.push(<CAGridData className="CAGridData" ref={this.dataRef} renderRef={this.renderer} key={2}/>);
+            // }
+            
+            this.child = (
+                <div className="flexRow wholeDeal">
                 <canvas className="glCanvas flexItem" ref={this.canvasRef} width={this.configs.width} height={this.configs.height} key={1}/>
                 <div className="CAPerp flexItem">
                     {elements}
@@ -56,7 +56,7 @@ export default class CAGrid extends React.Component
             needDraw: 0,
         };
     }
-
+    
     // update loop
     tick()
     {
@@ -65,30 +65,31 @@ export default class CAGrid extends React.Component
         
         var update = this.renderer.checkState(false);
         var loop = this.renderer.Update(this.draw, this.configs);
+        
+        // if (this.canvasRef.current.width !== this.renderer.viewer.windowSize.x || this.canvasRef.current.height !== this.renderer.viewer.windowSize.y)
+        // {
+            
+        // }
 
-        if (this.canvasRef.current.width !== this.renderer.viewer.windowSize.x || this.canvasRef.current.height !== this.renderer.viewer.windowSize.y)
-        {
-
-        }
-
+        
         if (update !== CARender.renderState.nothing)
         {
             // if(this.props.gridDataEnabled)
             // {
-            //     this.dataRef.current.forceUpdate();
-            // }
-
-            if (this.props.gridInputEnabled)
-            {
-                this.inputRef.current.forceUpdate();
+                //     this.dataRef.current.forceUpdate();
+                // }
+                
+                if (this.props.gridInputEnabled)
+                {
+                    this.inputRef.current.forceUpdate();
+                }
             }
-        }
-
-        if (loop)
+            
+            if (loop)
             this.requestIdRef.current = requestAnimationFrame(this.tick.bind(this));
-    }
-
-    // animation cycle begins after the first render or once the canvas brought back on the screen
+        }
+        
+        // animation cycle begins after the first render or once the canvas brought back on the screen
     componentDidMount()
     {
         this.draw = this.canvasRef.current.getContext('2d');

@@ -1,4 +1,5 @@
 import React from 'react';
+import { JSONConverter } from '../import';
 
 export default class CAInput extends React.Component
 {
@@ -6,9 +7,9 @@ export default class CAInput extends React.Component
     {
         var renderer = this.props.renderRef;
         var input = this.props.inputRef;
-        var grid = renderer.CellularAutomata.grid;
+        var grid = renderer.configs.CellularAutomata.grid;
 
-        var pausedText = renderer.paused ? "Paused" : "Playing";
+        var pausedText = renderer.configs.paused ? "Paused" : "Playing";
         var grabText = input.grabCanvas ? "Move" : "Draw";
         var states = [];
 
@@ -23,14 +24,14 @@ export default class CAInput extends React.Component
                         () => input.setSpecificState(color)
                     }>
                     </div>
-                    <h3 className="cellStateName"> {renderer.stateNames[color]}</h3>
+                    <h3 className="cellStateName"> {renderer.configs.stateNames[color]}</h3>
                 </div>
             );
         }
 
         return (
             <div className="gridInput">
-                <h1 className="title"> {this.props.title} </h1>
+                <h1 className="title"> {renderer.configs.title} </h1>
 
                 <div className="grid">
                     {/* State Draw Picker */}
@@ -39,7 +40,7 @@ export default class CAInput extends React.Component
                     </div>
 
                     <div className="contentLeft">
-                        <h2> Generation: {renderer.CellularAutomata.generation} </h2>
+                        <h2> Generation: {renderer.configs.generation} </h2>
                     </div>
 
                     {/* pause/play button and simulation step button */}
@@ -59,19 +60,20 @@ export default class CAInput extends React.Component
                             {grabText}
                         </button>
 
-                        <button className={"button clear"} onClick={ () => {console.log("clear"); this.forceUpdate()}}>
+                        <button className={"button clear"} onClick={ () => {this.props.renderRef.Instantiate(); this.forceUpdate()}}>
                             Clear
                         </button>
 
-                        <button className={"button save"} onClick={ () => {console.log("save"); this.forceUpdate()}}>
+                        <button className={"button save"} onClick={ () => {JSONConverter.SaveCARender(renderer); this.forceUpdate()}}>
                             Save
                         </button>
                     </div>
 
                     {/* load a previous save */}
                     <div className="flexRow contentLeft">
-                        <button className={"button load"} onClick={ () => {console.log("load"); this.forceUpdate()}}>
-                            Load Save From File
+                        <input type="file" className={"upload"} id="CAFileUpload" accept="application/json"/>
+                        <button className="button load" onClick={ () => { JSONConverter.LoadCARender(renderer, document.querySelector("#CAFileUpload").files[0]); this.forceUpdate(); } }>
+                            Load
                         </button>
                     </div>
                 </div>

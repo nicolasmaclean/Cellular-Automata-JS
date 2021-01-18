@@ -4,11 +4,10 @@ import { Grid } from './import'
 
 class CellularAutomata
 {
-    constructor(cellStateAmt, cellColors, rules)
+    constructor(configs)
     {
-        this.grid = new Grid(cellStateAmt, cellColors);
-        this.generation = 0;
-        this.ruleset = rules;
+        this.grid = new Grid(configs.cellColors);
+        this.configs = configs;
     }
 
     // performs one step of the simulation
@@ -53,7 +52,7 @@ class CellularAutomata
 
         this.grid.setNewMap(nMap);
         this.grid.pruneDefaultValues();
-        this.generation++;
+        this.configs.generation++;
     }
 
     applyRules(key)
@@ -62,18 +61,15 @@ class CellularAutomata
         var neighbors = this.grid.getNeighborsValues(key);
         var val = this.getCell(key);
 
-        for (let rule in this.ruleset) // fix rule iteration stuff here and line 55
+        for (let rule in this.configs.rules)
         {
-            var n = this.ruleset[rule](neighbors, val) 
-            // console.log(neighbors, val, n);
+            var n = this.configs.rules[rule](neighbors, val) 
             if (n[0])
             {
-                // console.log(" ");
                 return n[1];
             }
         }
         
-        // console.log(" ");
         return 0;
     }
 

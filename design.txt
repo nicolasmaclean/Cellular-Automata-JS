@@ -188,3 +188,31 @@ CARender configurations JS object
 	PreStepFunc = CARender.PreStepDraw,
 	PostStepFunc = CArender.PostStepDraw,
 }
+
+-------------------------
+
+Save File Format
+make CARender and other files modify configs data instead of their own copies
+at save store gridCoord for viewer to be initialized to
+
+CA-JS-timeStamp.JSON:
+	configs
+		title
+		rules
+		cell names
+		cell colors
+		clr_bg
+		
+		updateState
+		paused
+
+		fps
+		fpsStep
+
+		windowSize // I can use this to adjust position if the windowSize differs from the current one
+		drawSpecificState
+		drawState
+
+	move into configs
+		cells and their states
+	this.viewer, maybe not actually ??

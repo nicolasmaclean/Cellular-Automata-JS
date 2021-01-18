@@ -4,8 +4,10 @@ import { Vector } from './import'
 
 class Viewer
 {
-    constructor(init_windowSize, init_pos = new Vector(0, 0), init_zoom = 1, init_lerpFactor = .2, init_maxZoom = 9, init_minZoom = .8)
+    constructor(configs, init_pos = new Vector(0, 0), init_zoom = 1, init_lerpFactor = .2, init_maxZoom = 9, init_minZoom = .8)
     {
+        this.configs = configs;
+
         // data
         this.pos = new Vector(0, 0); // move to input pos instantly 
         this.targetPos = this.pos.copy();
@@ -13,7 +15,6 @@ class Viewer
         this.zoom = init_zoom;
         this.maxZoom = init_maxZoom;
         this.minZoom = init_minZoom;
-        this.windowSize = init_windowSize;
         
         // config
         this.lerpFactor = init_lerpFactor;
@@ -48,7 +49,7 @@ class Viewer
         }
 
         // offset so zoom is from the middle, not the top right right of the canvas
-        this.targetPos.add(new Vector(this.windowSize.x*zoomP/4, this.windowSize.y*zoomP/4));
+        this.targetPos.add(new Vector(this.configs.windowSize.x*zoomP/4, this.configs.windowSize.y*zoomP/4));
 
         this.cellSize = this.defaultCellSize * this.zoom;
     }
@@ -115,7 +116,7 @@ class Viewer
     // adds offset to given grid coord so it is in the center of the screen
     translateCoordToCenterScreen(vector)
     {
-        var v = Vector.div_int(this.windowSize, this.cellSize);
+        var v = Vector.div_int(this.configs.windowSize, this.cellSize);
         v.div_int(2);
         return Vector.add(vector, v);
     }

@@ -127,6 +127,10 @@ class UserInput
             {
                 this.setSpecificStateHandeler(event);
             }
+            else if (event.key === "t")
+            {
+                console.log(this.render)
+            }
         }.bind(this);
     }
 
@@ -254,13 +258,13 @@ class UserInput
         // will draw something if nothing has been drawn while the mouse was down
         if (this.render.lineCoordsDone.size() !== 0)
         {
-            if (this.render.drawSpecificState)
+            if (this.render.configs.drawSpecificState)
             {
-                this.render.CellularAutomata.setCell(gridCoord, this.render.drawState);
+                this.render.configs.CellularAutomata.setCell(gridCoord, this.render.configs.drawState);
             }
             else
             {
-                this.render.CellularAutomata.cycleCell(gridCoord);
+                this.render.configs.CellularAutomata.cycleCell(gridCoord);
             }
         }
         
@@ -274,9 +278,9 @@ class UserInput
     }
     
     // pauses simulation if in the simulation loop
-    pauseToggle()
+    pauseToggle() 
     {
-        this.render.paused = !this.render.paused;
+        this.render.configs.paused = !this.render.configs.paused;
     }
 
     // switches left click between grabbing the canvas and drawing cells
@@ -289,7 +293,7 @@ class UserInput
     // toggles draw mode between cycle cell state and set to specific state
     drawSpecificStateToggle()
     {
-        this.render.drawSpecificState = !this.render.drawSpecificState;
+        this.render.configs.drawSpecificState = !this.render.configs.drawSpecificState;
     }
 
     // wrapper for this.setSpecificState that processes key event
