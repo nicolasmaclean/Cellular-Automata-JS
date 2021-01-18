@@ -39,7 +39,7 @@ export default class CAInput extends React.Component
                         {states}
                     </div>
 
-                    <div className="contentLeft">
+                    <div className="onePaddingLeft">
                         <h2> Generation: {renderer.configs.generation} </h2>
                     </div>
 
@@ -49,7 +49,7 @@ export default class CAInput extends React.Component
                             {pausedText} 
                         </button>
 
-                        <button className="button fade" onClick={() => { input.singleStep() }} disabled={!renderer.paused}>
+                        <button className="button fade" onClick={() => { input.singleStep() }} disabled={!renderer.configs.paused}>
                             Step Once
                         </button>
                     </div>
@@ -60,7 +60,7 @@ export default class CAInput extends React.Component
                             {grabText}
                         </button>
 
-                        <button className={"button clear"} onClick={ () => {this.props.renderRef.Instantiate(); this.forceUpdate()}}>
+                        <button className={"button clear"} onClick={ () => {this.props.renderRef.Instantiate(); renderer.configs.generation = 0; this.forceUpdate()}}>
                             Clear
                         </button>
 
@@ -71,10 +71,19 @@ export default class CAInput extends React.Component
 
                     {/* load a previous save */}
                     <div className="flexRow contentLeft">
-                        <input type="file" className={"upload"} id="CAFileUpload" accept="application/json"/>
-                        <button className="button load" onClick={ () => { JSONConverter.LoadCARender(renderer, document.querySelector("#CAFileUpload").files[0]); this.forceUpdate(); } }>
+                        <button className="button load" onClick={ () => { console.log(document.querySelector("#CAFileUpload").files[0]); JSONConverter.LoadCARender(renderer, document.querySelector("#CAFileUpload").files[0]); this.forceUpdate(); } }>
                             Load
                         </button>
+                        <input type="file" className={"file"} id="CAFileUpload" accept="application/json"/>
+                        <button className="button fileButton" onClick={ () => { document.querySelector("#CAFileUpload").click(); } }>
+                            Browse
+                        </button>
+                    </div>
+
+                    <div className="onePaddingLeft">
+                        <h2>
+                            {document.querySelector("#CAFileUpload") && document.querySelector("#CAFileUpload").files.length !== 0 ? document.querySelector("#CAFileUpload").files[0].name : "No File Selected"}
+                        </h2>
                     </div>
                 </div>
             </div>
