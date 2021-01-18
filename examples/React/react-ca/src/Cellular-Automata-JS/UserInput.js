@@ -209,7 +209,7 @@ class UserInput
     // draws the first cell in a line
     startDrawing(screenCoord)
     {
-        this.render.lineCoordsAdd.add(this.viewer.screenToGrid(screenCoord));
+        // this.render.lineCoordsAdd.add(this.viewer.screenToGrid(screenCoord));
         this.render.needDraw = true;
     }
 

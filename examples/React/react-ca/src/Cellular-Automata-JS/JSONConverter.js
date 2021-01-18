@@ -163,7 +163,7 @@ export default class JSONConverter
     }
 
     // loads JSON file and reinstantiates CARender based upon it
-    static LoadCARender(render, json)
+    static LoadCARender(json, callback)
     {
         // stops attempting to load file if there is no file
         if (json === undefined)
@@ -171,15 +171,16 @@ export default class JSONConverter
             return;
         }
 
-        if (true)//JSONConverter.checkFile(json))
+        json.text(); // begins asynchronous call to load json
+        json.text().then( (text) => 
         {
-            json.text(); // begins asynchronous call to load json
-            json.text().then( (text) => 
-            {
-                var obj = JSONConverter.JSONToJS(text);
-                JSONConverter.LoadCARenderFromObj(render, obj)
-            })
-        }
+            var obj = JSONConverter.JSONToJS(text);
+
+            callback(obj);
+            // console.log(Date.now(), obj)
+            // return obj;
+            // JSONConverter.LoadCARenderFromObj(render, obj)
+        })
     }
     
     // resets simulation with new configs object

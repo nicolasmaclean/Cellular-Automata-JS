@@ -11,19 +11,18 @@ var cellAutoGridRef = React.createRef();
 var obj = {
     width: window.innerWidth*.5,
     height: window.innerHeight*.75,
+    mode: "meep",
+    title: "meep",
+    cellColors: "wire world",
+    rules: "wire world",
+    ruleDescriptions: "wire world",
+    stateNames: "wire world",
 }
 
-console.log(window.innerWidth, window.innerHeight)
-console.log(obj, window.innerHeight*.125)
-
 var cellAutoGrid = <CAGrid configs={obj} ref={cellAutoGridRef} gridDataEnabled={true} gridInputEnabled={true}/>;
-// var cellAutoGrid = <CAGrid ref={cellAutoGridRef} gridDataEnabled={true} gridInputEnabled={true}/>;
 
 var elements = (
     <div id="group"
-        // style={{
-        //     marginTop: window.innerHeight*.125
-        // }}
     >
         {cellAutoGrid}
     </div>
