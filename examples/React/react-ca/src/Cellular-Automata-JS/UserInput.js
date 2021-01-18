@@ -31,7 +31,7 @@ class UserInput
     }
         
     // attaches all events to the given canvas
-    attachEvents(canvas, attachKey = true, attachMouse = true)
+    attachEvents(canvas, attachKey = false, attachMouse = true)
     {
         // skips if events have already been attached
         if (this.eventsDidAttach)

@@ -449,6 +449,7 @@ class CARender
             configs.rules = configs.mode;
             configs.stateNames = configs.mode;
             configs.ruleDescriptions = configs.mode;
+            configs.subtitle = "prebuilt";
         }
         else
         {

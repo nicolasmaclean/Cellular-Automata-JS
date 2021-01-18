@@ -17,6 +17,7 @@ var obj = {
     rules: "wire world",
     ruleDescriptions: "wire world",
     stateNames: "wire world",
+    subtitle: "custom",
 }
 
 var cellAutoGrid = <CAGrid configs={obj} ref={cellAutoGridRef} gridDataEnabled={true} gridInputEnabled={true}/>;

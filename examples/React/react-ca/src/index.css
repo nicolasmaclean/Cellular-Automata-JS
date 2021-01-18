@@ -235,7 +235,7 @@ input.file
 {
     height: 0;
     width: 0;
-    margin-top: 2em;
+    margin-top: .5em;
     margin-left: 1em;
     
     border-left: 15px solid var(--text);
@@ -244,4 +244,37 @@ input.file
     border-bottom: 15px solid  var(--background);
 
     cursor: pointer;
+}
+
+.inputText
+{
+    background-color: var(--background);
+    border-radius: 6px;
+
+    border: none;
+    border-bottom: 2px solid var(--blue);
+
+    padding-left: .5em;
+    font-size: 1.5em;
+}
+
+.inputText:hover
+{
+    filter: brightness(0.95);
+}
+
+.header
+{
+    width: 100%;
+    padding-left: 5em;
+}
+
+.noPadding
+{
+    padding: 0;
+}
+
+.noMargin
+{
+    margin: 0;
 }

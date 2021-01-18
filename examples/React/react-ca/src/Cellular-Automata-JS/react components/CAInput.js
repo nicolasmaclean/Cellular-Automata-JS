@@ -60,56 +60,64 @@ export default class CAInput extends React.Component
         
         return (
             <div className="gridInput">
-                <div className="flexRow">
-                    <h1 className="title"> {renderer.configs.title} </h1>
-                    <button className="arrowButton" onClick={ () =>
-                    {
-                        // increments mode and prevents overflow
-                        var m = this.state.mode+1;
-                        m %= this.state.modeLength;
-                        
-                        // creates CARender object with prebuilt mode as needed
-                        if (this.modes[m] === undefined)
+                <div className="header">
+                    <div className="flexRow contentLeft noPadding">
+                        <h1 className="title noMargin"> {renderer.configs.title} </h1>
+                        <button className="arrowButton" onClick={ () =>
                         {
-                            // creates appropiate configs obj
-                            var obj = {
-                                width: this.props.parentRef.ogConfigs.width,
-                                height: this.props.parentRef.ogConfigs.height,
-                                mode: CARender.prebuiltModes[m],
+                            // increments mode and prevents overflow
+                            var m = this.state.mode+1;
+                            m %= this.state.modeLength;
+                            
+                            // creates CARender object with prebuilt mode as needed
+                            if (this.modes[m] === undefined)
+                            {
+                                // creates appropiate configs obj
+                                var obj = {
+                                    width: this.props.parentRef.ogConfigs.width,
+                                    height: this.props.parentRef.ogConfigs.height,
+                                    mode: CARender.prebuiltModes[m],
+                                }
+                                
+                                CARender.fillJSObjectBlanks(obj);
+                                CARender.fillModesInObj(obj);
+                                
+                                // creates new render
+                                var nRender = new CARender(obj);
+                                
+                                
+                                // stores new render in this.modes cache
+                                this.modes[m] = nRender;
                             }
                             
-                            CARender.fillJSObjectBlanks(obj);
-                            CARender.fillModesInObj(obj);
-                            
-                            // creates new render
-                            var nRender = new CARender(obj);
-                            
-                            
-                            // stores new render in this.modes cache
-                            this.modes[m] = nRender;
-                        }
-                        
-                        // points CAGrid references to the current mode
-                        this.modes[m].needDraw = true;
-                        this.props.parentRef.configs = this.modes[m].configs;
-                        this.props.parentRef.renderer = this.modes[m];
+                            // points CAGrid references to the current mode
+                            this.modes[m].needDraw = true;
+                            this.props.parentRef.configs = this.modes[m].configs;
+                            this.props.parentRef.renderer = this.modes[m];
 
-                        // points userInput to current renderer
-                        this.props.parentRef.userInput.ReInitialize(this.modes[m], this.modes[m].viewer)
+                            // points userInput to current renderer
+                            this.props.parentRef.userInput.ReInitialize(this.modes[m], this.modes[m].viewer)
 
-                        // updates the mode state
-                        this.setState({
-                            mode: m
-                        }) 
+                            // updates CA Subtitle Input
+                            document.querySelector("#CASubtitleInput").value = this.modes[m].configs.subtitle;
 
-                    }}></button>
+                            // updates the mode state
+                            this.setState({
+                                mode: m
+                            }) 
+
+                        }}></button>
+                    </div>
+
+                    <div className="subheader">
+                        <input id="CASubtitleInput" className={"inputText"} type="text" defaultValue={renderer.configs.subtitle} onChange={ (event) =>
+                        {
+                            console.log(renderer.configs.subtitle);
+                            renderer.configs.subtitle = event.target.value;
+                            console.log(renderer.configs.subtitle);
+                        }}></input>
+                    </div>
                 </div>
-
-                {/* <div className="subheader">
-                    <h3>
-                        Custom
-                    </h3>
-                </div> */}
 
                 <div className="grid">
                     {/* State Draw Picker */}
@@ -153,6 +161,7 @@ export default class CAInput extends React.Component
                             {
                                 JSONConverter.LoadCARender(document.querySelector("#CAFileUpload").files[0], (configs) =>
                                 {
+                                    // update CASubtitleInput to configs.subtitle
                                     configs.windowSize = this.props.parentRef.configs.windowSize;
                                     var map = configs.CellularAutomata;
                                     
@@ -177,6 +186,9 @@ export default class CAInput extends React.Component
                                         mode: m,
                                         modeLength: m+1
                                     })
+
+                                    // updates CA Subtitle Input
+                                    document.querySelector("#CASubtitleInput").value = this.modes[m].configs.subtitle;
     
                                     this.forceUpdate(); 
                                 }); 
