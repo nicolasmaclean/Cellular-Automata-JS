@@ -63,7 +63,6 @@ class Viewer
     screenToGrid(coord)
     {
         var gridCoord = Vector.sub(coord, this.pos);
-        gridCoord.sub_int(this.cellSize/2);
         gridCoord.div_int(this.cellSize);
         gridCoord = Vector.floor(gridCoord);
 

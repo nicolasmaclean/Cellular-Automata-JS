@@ -253,7 +253,7 @@ class UserInput
     // this.toggleCell wrapper that processes mouse event info
     toggleCellHandler(e)
     {
-        this.toggleCell(new Vector(e.clientX, e.clientY));
+        this.toggleCell(new Vector(e.offsetX, e.offsetY));
     }
 
     // toggles given cell
@@ -262,7 +262,7 @@ class UserInput
         var gridCoord = this.viewer.screenToGrid(screenCoords);
 
         // will draw something if nothing has been drawn while the mouse was down
-        if (this.render.lineCoordsDone.size() !== 0)
+        if (this.render.lineCoordsDone.size() === 0)
         {
             if (this.render.configs.drawSpecificState)
             {
@@ -272,7 +272,10 @@ class UserInput
             {
                 this.render.configs.CellularAutomata.cycleCell(gridCoord);
             }
+
+            this.render.needDraw = true;
         }
+
         
         this.stopDrawing();
     }
