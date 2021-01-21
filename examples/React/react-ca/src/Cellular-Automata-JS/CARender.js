@@ -11,8 +11,7 @@ class CARender
 {
     constructor(configs)
     {
-        // fills out and configs and stores a reference
-        CARender.fillModesInObj(configs);
+        // stores a reference
         this.configs = configs;
 
         // FPS controller stuff
@@ -30,14 +29,6 @@ class CARender
     {
         // initializes simulation
         this.configs.CellularAutomata = new CellularAutomata(this.configs);
-        
-        if (this.configs.cellColors === "game of life")
-            this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)], 1);
-        if (this.configs.cellColors === "wire world")
-        {
-            this.configs.CellularAutomata.grid.setCells_val([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0), new Vector(2, 0)], 3);
-            this.configs.CellularAutomata.grid.setCells_val([new Vector(-2, 0)], 1)
-        }
         
         // state management
         this.step = false;
@@ -80,7 +71,6 @@ class CARender
         }
     }
 
-    // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
     // returns the update state and advances the update state
     checkState(update)
     {
@@ -166,22 +156,6 @@ class CARender
             this.handleInput();
             this.Draw(drawContext, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc);
         }
-
-        // does nothing
-        else if (renderState === CARender.renderState.nothing)
-        {
-            // console.log("nothin");
-        }
-
-        // no loop
-        else if (renderState === CARender.renderState.noLoop)
-        {
-            console.log("no loop");
-            return false;
-        }
-
-        // flag to indicate loop should be continued
-        return true;
     }
 
     // returns a js object with cell colors as keys and stored as their values
@@ -297,38 +271,6 @@ class CARender
         }
     }
 
-    // The following 4 functions serve as default rendering options for HTML canvas utilizing the 2d context
-    // draws a cell of given size at given screen coordinate, note cell color is not set in this method
-    static DrawCell(drawContext, coord, cellSize)
-    {
-        drawContext.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
-    }
-
-    // clears the canvas
-    static PreStepDraw(drawContext, clr, windowSize)
-    {
-        drawContext.fillStyle = clr;
-        drawContext.fillRect(0, 0, this.configs.windowSize.x, this.configs.windowSize.y);
-    }
-
-    // draws a border around the grid
-    static PostStepDraw(drawContext, clr, windowSize)
-    {
-        drawContext.strokeStyle = clr;
-        drawContext.moveTo(1, 1);
-        drawContext.lineTo(1, this.configs.windowSize.y-1);
-        drawContext.lineTo(this.configs.windowSize.x-1, this.configs.windowSize.y-1);
-        drawContext.lineTo(this.configs.windowSize.x-1, 1);
-        drawContext.lineTo(1, 1);
-        drawContext.stroke();
-    }
-
-    // sets the fill style prior to drawing a batch of cells
-    static DrawStyle(drawContext, clr)
-    {
-        drawContext.fillStyle = clr;
-    }
-
     // fills in missing properties with default values
     static fillJSObjectBlanks(obj)
     {
@@ -375,11 +317,6 @@ class CARender
     static JSObjectDefault()
     {
         var obj = {
-            // title: "Brian Silverman's Wire World",
-            // cellColors: "wire world", // allow a custom javascript obj of colors, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            // rules: "wire world", // allow a custom array of rule functions, "game of life" or "wire world" or some other predefined one, or use wireworld as default
-            // stateNames: "wire world",
-            // ruleDescriptions: "wire world",
             mode: "wire world",
             generation: 0,
 
@@ -393,7 +330,7 @@ class CARender
             fps: 10,
             fpsStep: 20,
             
-            loopState: 2,
+            loopState: CARender.loopEnum.stepLoop,
             paused: false,
             drawSpecificState: true,
             drawState: 1,
@@ -433,8 +370,6 @@ class CARender
         var centerOffset = Vector.div_int(obj.windowSize, obj.zoom * 10);
         centerOffset.div_int(2);
         obj.position.add(centerOffset);
-        // console.log(obj.position.x, obj.position.y);
-        // obj.CellularAutomata = new CellularAutomata(obj);
 
         return obj;
     }

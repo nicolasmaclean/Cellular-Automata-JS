@@ -23,8 +23,7 @@ var obj = {
 var cellAutoGrid = <CAGrid configs={obj} ref={cellAutoGridRef} gridDataEnabled={true} gridInputEnabled={true}/>;
 
 var elements = (
-    <div id="group"
-    >
+    <div id="group">
         {cellAutoGrid}
     </div>
 )

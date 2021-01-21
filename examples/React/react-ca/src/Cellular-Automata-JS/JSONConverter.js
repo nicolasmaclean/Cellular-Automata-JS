@@ -1,7 +1,7 @@
 // helper class for converting JS objects to JSON files and vice versa.
 // Thanks to the StackOverflow answer from Shobhit Sharma
 
-import { Vector, Grid, CellularAutomata } from'./import'
+import { Vector, CellularAutomata } from'./import'
 
 export default class JSONConverter
 {
