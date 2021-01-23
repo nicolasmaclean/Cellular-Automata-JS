@@ -1,0 +1,23 @@
+*
+{
+    font-family: 'Roboto', sans-serif;
+}
+
+.CA
+{
+    height: 100vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#glCanvas
+{
+    width: 700px;
+    height: 600px;
+}
+
+#info
+{
+    height: 600px;
+}

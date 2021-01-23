@@ -2,32 +2,70 @@
 
 class CARender
 {
-    constructor(init_loopState, init_windowSize, init_clr_bg = "#c0c0c0", init_fps = 10, init_fpsS = 20)
+    constructor(configs)
     {
-        // configurations
-        this.clr_bg = init_clr_bg;
-        this.updateState = init_loopState;
-        
-        // initializes simulation
-        this.CellularAutomata = new CellularAutomata();
-        this.viewer = new Viewer(init_windowSize);
-        
-        this.CellularAutomata.grid.setCells_true([new Vector(-1, 0), new Vector(0, 0), new Vector(1, 0)]);
-        
+        // stores a reference
+        this.configs = configs;
+
         // FPS controller stuff
-        this.fps = init_fps;
-        this.fpsS = init_fpsS;
+        this.configs.fps = configs.fps;
+        this.configs.fpsStep = configs.fpsStep;
+        
+        // viewer
+        this.viewer = new Viewer(configs);
+        
+        this.Instantiate();
+    }
+    
+    // instantiates or reinstantiates all relevant values for clearing the canvas
+    Instantiate()
+    {
+        // initializes simulation
+        this.configs.CellularAutomata = new CellularAutomata(this.configs);
+        
+        // state management
+        this.step = false;
+        this.needDraw = true;
+        
+        // configs
+        this.cellColorsLength = Object.keys(this.configs.cellColors).length;
+        
+        // input
+        this.coordsSet = []; // list of lists that store a coord and value to set at that coord
+        this.lineCoordsDone = new NSet(); // stores a set of coords
+        this.lineCoordsAdd = new NSet();
 
-        this.fpsInterval = 1000 / this.fps;
-        this.fpsIntervalS = 1000 / this.fpsS;
-
+        // fps controller
+        this.fpsInterval = 1000 / this.configs.fps;
+        this.fpsIntervalS = 1000 / this.configs.fpsStep;
+        
         this.lastFrame = 0;
         this.lastFrameS = 0;
     }
+    
+    // reinstantiates with given javascript object
+    ReInstantiate(obj)
+    {
+        this.configs = obj;
 
-    // TODO: add parameter to control if the fps stuff should be reset provided elapsed is big enough
+        this.configs.paused = obj.paused;
+        this.configs.drawSpecificState = obj.drawSpecificState;
+        this.configs.drawState = obj.drawState;
+    }
+
+    // sets the drawState and clamps values too big
+    setDrawState(val)
+    {
+        this.configs.drawState = val;
+
+        if(this.configs.drawState >= this.cellColorsLength)
+        {
+            this.configs.drawState = this.cellColorsLength-1;
+        }
+    }
+
     // returns the update state and advances the update state
-    checkState(updateFPSTracking)
+    checkState(update)
     {
         // frame rate control
         var currentFrame = Date.now();
@@ -37,9 +75,9 @@ class CARender
         var elapsedS = currentFrameS - this.lastFrameS;
         
         // simulation loop
-        if (!this.viewer.paused && this.updateState === CARender.loopEnum.stepLoop && elapsed > this.fpsInterval)
+        if (!this.configs.paused && this.configs.loopState === CARender.loopEnum.stepLoop && elapsed > this.fpsInterval)
         {
-            if (updateFPSTracking)
+            if (update)
             {
                 this.lastFrame = currentFrame - (elapsed % this.fpsInterval);
             }
@@ -48,28 +86,30 @@ class CARender
         }
         
         // single step
-        else if ((this.updateState !== CARender.loopEnum.stepLoop || this.viewer.paused) && this.viewer.step && elapsedS > this.fpsIntervalS) // add a fps controller
+        else if ((this.configs.loopState !== CARender.loopEnum.stepLoop || this.configs.paused) && this.step && elapsedS > this.fpsIntervalS) // add a fps controller
         {
-            if (updateFPSTracking)
+            if (update)
             {
                 this.lastFrameS = currentFrameS - (elapsedS % this.fpsIntervalS);
+                this.step = false;
             }
-            
-            this.viewer.step = false;
 
             return CARender.renderState.step;
         }
         
         // TODO: move viewer.pos == viewer.target pos to be handelled in viewer.update and have it modify viewer.needDraw
         // draw loop
-        else if (((this.viewer.paused || this.updateState === CARender.loopEnum.drawLoop) && this.viewer.needDraw) || this.viewer.needDraw || !this.viewer.targetPos.equals(this.viewer.pos))
+        else if (((this.configs.paused || this.configs.loopState === CARender.loopEnum.drawLoop) && this.needDraw) || this.needDraw || !this.viewer.targetPos.equals(this.viewer.pos))
         {
-            this.viewer.needDraw = false;
+            if (update)
+            {
+                this.needDraw = false;
+            }
             return CARender.renderState.draw;
         }
 
         // no loop
-        else if (this.updateState === CARender.loopEnum.noLoop)
+        else if (this.configs.loopState === CARender.loopEnum.noLoop)
         {
             return CARender.renderState.noLoop;
         }
@@ -82,8 +122,15 @@ class CARender
     }
 
     // checks the state of the simulation/render and will step the simulation or render it if necessary. returns true if the update loop should continue.
-    Update(drawContext, DrawCellFunc = CARender.DrawCell, DrawStyleFunc = CARender.DrawStyle, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw)
+    Update(drawContext, configs)
+    // Update(drawContext, DrawCellFunc = CARender.DrawCell, DrawStyleFunc = CARender.DrawStyle, PreStepFunc = CARender.PreStepDraw, PostStepFunc = CARender.PostStepDraw)
     {
+        // stores references to configs functions
+        var DrawCellFunc = configs.DrawCellFunc;
+        var DrawStyleFunc = configs.DrawStyleFunc;
+        var PreStepFunc = configs.PreStepFunc;
+        var PostStepFunc = configs.PostStepFunc;
+
         // be careful this will update frame controller
         var renderState = this.checkState(true);
 
@@ -91,44 +138,28 @@ class CARender
         if (renderState === CARender.renderState.step)
         {
             this.handleInput();
-            renderer.PreStep(drawContext, PreStepFunc);
-            renderer.Step()
-            renderer.PostStep(drawContext, PostStepFunc, DrawStyleFunc, DrawCellFunc);
+            this.PreStep(drawContext, PreStepFunc);
+            this.Step()
+            this.PostStep(drawContext, PostStepFunc, DrawStyleFunc, DrawCellFunc);
         }
 
         // draws the grid
         else if (renderState === CARender.renderState.draw)
         {
             this.handleInput();
-            renderer.Draw(drawContext, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc);
+            this.Draw(drawContext, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc);
         }
-
-        // does nothing
-        else if (renderState === CARender.renderState.nothing)
-        {
-            // console.log("nothin");
-        }
-
-        // no loop
-        else if (renderState === CARender.renderState.noLoop)
-        {
-            console.log("no loop");
-            return false;
-        }
-
-        // flag to indicate loop should be continued
-        return true;
     }
 
     // returns a js object with cell colors as keys and stored as their values
     drawGridData()
     {
-        var cells = Cell.getBatchObject();
-
+        var cells = this.configs.CellularAutomata.grid.createBatchObject();
+        
         // grid coords within the window bounds, inclusive
-        this.xBounds = new Vector(Math.floor(-this.viewer.pos.x/this.viewer.cellSize), Math.floor((-this.viewer.pos.x+canvas.width)/this.viewer.cellSize));
-        this.yBounds = new Vector(Math.floor(-this.viewer.pos.y/this.viewer.cellSize), Math.floor((-this.viewer.pos.y+canvas.height)/this.viewer.cellSize));
-
+        this.xBounds = new Vector(Math.floor(-this.viewer.pos.x/this.viewer.cellSize), Math.floor((-this.viewer.pos.x+this.configs.windowSize.x)/this.viewer.cellSize));
+        this.yBounds = new Vector(Math.floor(-this.viewer.pos.y/this.viewer.cellSize), Math.floor((-this.viewer.pos.y+this.configs.windowSize.y)/this.viewer.cellSize));
+        
         for (var x = this.xBounds.x; x <= this.xBounds.y; x++)
         {
             for (var y = this.yBounds.x; y <= this.yBounds.y; y++)
@@ -136,36 +167,44 @@ class CARender
                 // cell info
                 var cx = x*this.viewer.cellSize + this.viewer.pos.x;
                 var cy = y*this.viewer.cellSize + this.viewer.pos.y;
-                var val = Cell.getColor(this.CellularAutomata.getCell(new Vector(x, y)));
+                var val = this.configs.CellularAutomata.getCell(new Vector(x, y));
+                var clr = this.configs.CellularAutomata.grid.cellColors[val];
+
+                if (val === undefined || clr === undefined)
+                    console.log(val, clr, x, y, cx, cy)
                 
-                cells[val].push(new Vector(cx, cy));
+                cells[clr].push(new Vector(cx, cy));
             }
         }
 
         return cells;
     }
 
-    // update the way it cycles through cell states
+    // TODO: update the way it cycles through cell states
     // handles input stored in the Viewer object
     handleInput()
     {
-        // handles incoming coords
-        var inCoords = NSet.difference(this.viewer.newCoords, this.viewer.coordsInLine);
-        inCoords.forEach(val =>
+        // toggles coords in the line that haven't already been processed
+        NSet.difference(this.lineCoordsAdd, this.lineCoordsDone).forEach( val => 
         {
-            this.CellularAutomata.setCell(val, !this.CellularAutomata.getCell(val));
+            if (this.configs.drawSpecificState)
+            {
+                this.configs.CellularAutomata.setCell(val, this.configs.drawState);
+            }
+            else
+            {
+                this.configs.CellularAutomata.cycleCell(val);
+            }
         })
 
-        this.viewer.newCoords = new NSet();
+        // updates the sets
+        this.lineCoordsDone.union(this.lineCoordsAdd);
+        this.lineCoordsAdd = new NSet();
 
-        // handles line drawing
-        if (!this.viewer.drawing)
+        // sets given coords with their requested value
+        for (let x in this.coordsSet)
         {
-            this.viewer.coordsInLine = new NSet();
-        }
-        else 
-        {
-            this.viewer.coordsInLine.union(inCoords);
+            this.configs.CellularAutomata.setCell(x[0], x[1]);
         }
     }
 
@@ -173,23 +212,22 @@ class CARender
     Step()
     {
         this.handleInput();
-        this.CellularAutomata.step();
+        this.configs.CellularAutomata.step();
     }
     
     // perfroms draw without stepping the simulation
     Draw(draw, PreStepFunc, PostStepFunc, DrawStyleFunc, DrawCellFunc)
     {
         this.PreStep(draw, PreStepFunc);
-        renderer.PostStep(draw, PostStepFunc, DrawStyleFunc, DrawCellFunc);
+        this.PostStep(draw, PostStepFunc, DrawStyleFunc, DrawCellFunc);
     }
 
     // pre simulation
     PreStep(drawContext, PreStepFunc)
     {
         // clears the canvas
-        var clr = this.clr_bg;
-        var windowSize = this.viewer.windowSize;
-        PreStepFunc(drawContext, clr, windowSize);
+        var clr = this.configs.clr_bg;
+        PreStepFunc(drawContext, clr, this.configs.windowSize);
         
         this.viewer.Update();
     }
@@ -199,12 +237,11 @@ class CARender
     {
         var gridData = this.drawGridData();
         var cellSize = this.viewer.cellSize;
-        CARender.DrawGrid(gridData, cellSize, draw, DrawStyleFunc, DrawCellFunc);
+        CARender.DrawGrid(gridData, cellSize, drawContext, DrawStyleFunc, DrawCellFunc);
         
         // TODO: separate this into a second "UI" canvas that is painted ontop of the grid canvas
-        var bg = this.clr_bg;
-        var windowSize = this.viewer.windowSize;
-        PostStepFunc(drawContext, bg, windowSize);
+        var bg = this.configs.clr_bg;
+        PostStepFunc(drawContext, bg, this.configs.windowSize);
     }
 
     // draws the grid retrieved from this
@@ -227,38 +264,287 @@ class CARender
         }
     }
 
-    // The following 4 functions serve as default rendering options for HTML canvas utilizing the 2d context
-    // draws a cell of given size at given screen coordinate, note cell color is not set in this method
-    static DrawCell(drawContext, coord, cellSize)
+    // fills in missing properties with default values
+    static fillJSObjectBlanks(obj)
     {
-        drawContext.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
+        var defaultObj = CARender.JSObjectDefault();
+        
+        if (obj.width === undefined) { obj.width = defaultObj.width}
+        if (obj.height === undefined) { obj.height = defaultObj.height}
+        if (obj.windowSize === undefined) { obj.windowSize = new Vector(obj.width, obj.height)}
+        
+        if (obj.x === undefined) { obj.x = defaultObj.x}
+        if (obj.y === undefined) { obj.y = defaultObj.y}
+        if (obj.position === undefined) { obj.position = new Vector(obj.x, obj.y)}
+
+        // if (obj.cellColors === undefined) { obj.cellColors = defaultObj.cellColors}
+        // if (obj.rules === undefined) { obj.rules = defaultObj.rules}
+        // if (obj.stateNames === undefined) { obj.stateNames = defaultObj.stateNames}
+        // if (obj.ruleDescriptions === undefined) { obj.ruleDescriptions = defaultObj.ruleDescriptions}
+        // if (obj.title === undefined) { obj.title = defaultObj.title}
+        if (obj.mode === undefined) { obj.mode = defaultObj.mode; }
+
+        if (obj.generation === undefined) { obj.generation = defaultObj.generation}
+        // if (obj.CellularAutomata === undefined) { obj.CellularAutomata = defaultObj.CellularAutomata}
+        if (obj.clr_bg === undefined) { obj.clr_bg = defaultObj.clr_bg}
+        
+        if (obj.loopState === undefined) { obj.loopState = defaultObj.loopState}
+        if (obj.paused === undefined) { obj.paused = defaultObj.paused}
+        if (obj.drawSpecificState === undefined) { obj.drawSpecificState = defaultObj.drawSpecificState}
+        if (obj.drawState === undefined) { obj.drawState = defaultObj.drawState}
+
+        if (obj.zoom === undefined) { obj.zoom = defaultObj.zoom}
+        if (obj.maxZoom === undefined) { obj.maxZoom = defaultObj.maxZoom}
+        if (obj.minZoom === undefined) { obj.minZoom = defaultObj.minZoom}
+
+        if (obj.fps === undefined) { obj.fps = defaultObj.fps}
+        if (obj.fpsStep === undefined) { obj.fpsStep = defaultObj.fpsStep}
+        
+        if (obj.DrawCellFunc === undefined) { obj.DrawCellFunc = defaultObj.DrawCellFunc}
+        if (obj.DrawStyleFunc === undefined) { obj.DrawStyleFunc = defaultObj.DrawStyleFunc}
+        if (obj.PreStepFunc === undefined) { obj.PreStepFunc = defaultObj.PreStepFunc}
+        if (obj.PostStepFunc === undefined) { obj.PostStepFunc = defaultObj.PostStepFunc}
     }
 
-    // clears the canvas
-    static PreStepDraw(drawContext, clr, windowSize)
+    // returns the default configuration
+    static JSObjectDefault()
     {
-        drawContext.fillStyle = clr;
-        drawContext.fillRect(0, 0, windowSize.x, windowSize.y);
+        var obj = {
+            mode: "wire world",
+            generation: 0,
+
+            width: 700,
+            height: 600,
+
+            x: 0,
+            y: 0,
+
+            clr_bg: "#c0c0c0",
+            fps: 10,
+            fpsStep: 20,
+            
+            loopState: CARender.loopEnum.stepLoop,
+            paused: false,
+            drawSpecificState: true,
+            drawState: 1,
+
+            zoom: 1,
+            maxZoom: 9,
+            minZoom: .8,
+        
+            DrawCellFunc: (drawContext, coord, cellSize) =>
+            {
+                drawContext.fillRect(coord.x, coord.y, cellSize-1, cellSize-1);
+            },
+            DrawStyleFunc: (drawContext, clr) =>
+            {
+                drawContext.fillStyle = clr;
+            },
+            PreStepFunc: (drawContext, clr, windowSize) =>
+            {
+                drawContext.fillStyle = clr;
+                drawContext.fillRect(0, 0, windowSize.x, windowSize.y);
+            },
+            PostStepFunc: (drawContext, clr, windowSize) =>
+            {
+                drawContext.strokeStyle = clr;
+                drawContext.moveTo(1, 1);
+                drawContext.lineTo(1, windowSize.y-1);
+                drawContext.lineTo(windowSize.x-1, windowSize.y-1);
+                drawContext.lineTo(windowSize.x-1, 1);
+                drawContext.lineTo(1, 1);
+                drawContext.stroke();
+            },
+        };
+
+        obj.windowSize = new Vector(obj.width, obj.height);
+        obj.position = new Vector(obj.x, obj.y);
+        
+        var centerOffset = Vector.div_int(obj.windowSize, obj.zoom * 10);
+        centerOffset.div_int(2);
+        obj.position.add(centerOffset);
+
+        return obj;
     }
 
-    // draws a border around the grid
-    static PostStepDraw(drawContext, clr, windowSize)
+    // fills in string modes for cell colors and rules. For example, it would convert cellColor: "wire world" into {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'}
+    static fillModesInObj(configs)
     {
-        drawContext.strokeStyle = clr;
-        drawContext.moveTo(1, 1);
-        drawContext.lineTo(1, windowSize.y-1);
-        drawContext.lineTo(windowSize.x-1, windowSize.y-1);
-        drawContext.lineTo(windowSize.x-1, 1);
-        drawContext.lineTo(1, 1);
-        drawContext.stroke();
-    }
+        if (CARender.prebuiltModes.includes(configs.mode))
+        {
+            configs.title = configs.mode;
+            configs.cellColors = configs.mode;
+            configs.rules = configs.mode;
+            configs.stateNames = configs.mode;
+            configs.ruleDescriptions = configs.mode;
+            configs.subtitle = "prebuilt";
+        }
+        else
+        {
+            // removes case sensitivity
+            if (typeof configs.cellColors === "string")
+            {
+                configs.cellColors.toLowerCase();
+            }
 
-    // sets the fill style prior to drawing a batch of cells
-    static DrawStyle(drawContext, clr)
-    {
-        drawContext.fillStyle = clr;
+            if (typeof configs.rules === "string")
+            {
+                configs.rules.toLowerCase();
+            }
+
+            if (typeof configs.stateNames === "string")
+            {
+                configs.stateNames.toLowerCase();
+            }
+
+            if (typeof configs.ruleDescriptions === "string")
+            {
+                configs.stateNames.toLowerCase();
+            }
+        }
+
+        // checks for cell colors
+        if (configs.cellColors === "wire world")
+        {
+            configs.cellColors = {0: 'white', 1: 'yellow', 2: 'red', 3: 'black'};
+        }
+        else if (configs.cellColors === "game of life")
+        {
+            configs.cellColors = {0: 'white', 1: 'black'};
+        }
+
+        // checks for rules
+        if (configs.rules === "wire world")
+        {
+            configs.rules = [
+                (neighborsValues, curVal) => {return [curVal === 0, 0];},
+                (neighborsValues, curVal) => {return [curVal === 1, 2];},
+                (neighborsValues, curVal) => {return [curVal === 2, 3];},
+                (neighborsValues, curVal) => {
+                    // gets live neighbor count
+                    var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+                    liveNeighbors = liveNeighbors.length;
+                    
+                    // gets the outcome of the rule
+                    var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+                    
+                    // formats the output
+                    return [curVal === 3, result ? 1 :  3];},
+            ];
+        }
+        else if (configs.rules === "game of life")
+        {
+            configs.rules = [ (neighborsValues, curVal) => {
+                // gets live neighbor count
+                var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+                liveNeighbors = liveNeighbors.length;
+
+                // gets the outcome of the rule
+                var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+
+                // formats the output
+                return [result, result ? 1 :  0];
+            }]
+        }
+
+        // checks for state names
+        if (configs.stateNames === "wire world")
+        {
+            configs.stateNames = ["Background", "Electron Head", "Electron Tail", "Wire"];
+        }
+        else if (configs.stateNames === "game of life")
+        {
+            configs.stateNames = ["Dead", "Alive"];
+        }
+
+        // checks for title
+        if (configs.title === "wire world")
+        {
+            configs.title = "Brian Silverman's Wire World";
+        }
+        else if (configs.title === "game of life")
+        {
+            configs.title = "Conway's Game of Life";
+        }
+
+        // checks for rule descriptions
+        if (configs.ruleDescriptions === "wire world")
+        {
+            configs.ruleDescriptions = ["background ALWAYS remain background", 
+                "electron head becomes electron tail", 
+                "electron tail becomes wire", 
+                "wire becomes electron head IF there are 1 or 2 neighboring electron heads"
+            ];
+        }
+        else if (configs.ruleDescriptions === "game of life")
+        {
+            configs.ruleDescriptions = ["(over population) live cells with 4 or more live neighbors 'dies'",
+                "(under population) live cells with less than 2 live neighbors 'dies'",
+                "(birth) dead cells with 3 live neighbors become alive",
+                "live cells with 2 or 3 neighbors remain alive",
+            ];
+        }
     }
 }
+
+// GAME OF LIFE
+// example rule function to be passes through. The output should be an array of length 2. The first element is a boolean that specifies if this 
+// result is the final result. The second element is the new cell state.
+// function GameOfLifeRule(neighborsValues, curVal)
+// {
+//     // gets live neighbor count
+//     var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+//     liveNeighbors = liveNeighbors.length;
+
+//     // gets the outcome of the rule
+//     var result = (curVal === 1 && (liveNeighbors === 2)) || (liveNeighbors === 3);
+
+//     // formats the output
+//     return [result, result ? 1 :  0];
+// }
+
+// WIRE WORLD
+// second example that shows how to implement wireworld. There are 4 cell states and I use 4 rules as shown below to implement it.
+
+// background remains background
+// function wireWorld1(neighborsValues, curVal)
+// {
+//     return [curVal === 0, 0];
+// }
+
+// electron head becomes electron tail
+// function wireWorld2(neighborsValues, curVal)
+// {
+//     return [curVal === 1, 2];
+// }
+
+// electron tail becomes wire
+// function wireWorld3(neighborsValues, curVal)
+// {
+//     return [curVal === 2, 3];
+// }
+
+// wire becomes electron head if there electron(s) adjacent
+// function wireWorld4(neighborsValues, curVal)
+// {
+//     // gets live neighbor count
+//     var liveNeighbors = neighborsValues.filter( (val) => { return val === 1; } );
+//     liveNeighbors = liveNeighbors.length;
+    
+//     // gets the outcome of the rule
+//     var result = (curVal === 3 && (liveNeighbors === 2 || (liveNeighbors === 1)));
+    
+//     // formats the output
+//     return [curVal === 3, result ? 1 :  3];
+// }
+
+// Game of Life and Wire World rules/colors set as static variables for easy default modes
+// live and dead
+// var GOLColors = { 0: 'white', 1: 'black' };
+// var GOLRules = [GameOfLifeRule];
+
+// // background, electron head, electron tail, wire
+// var WWRules = [wireWorld1, wireWorld2, wireWorld3, wireWorld4];
 
 // enums
 CARender.renderState = {
@@ -274,3 +560,8 @@ CARender.loopEnum = {
     stepLoop: 2,
     step: 3
 }
+
+CARender.prebuiltModes = [
+    "game of life",
+    "wire world",
+]

@@ -1,146 +1,341 @@
 class UserInput
 {
     // canvas be left out if you would like to manually call attachEvents later
-    constructor(viewer, canvas)
+    constructor(render, init_scrollDivider = 15)
     {
-        // static variables
-        UserInput.viewer = viewer;
-        UserInput.mouse_grabbing = false;
-        UserInput.scrollDivider = 15;
+        // instantance variables
+        this.render = render;
+        this.viewer = render.viewer;
+        this.scrollDivider = init_scrollDivider;
 
-        // only do this if canvas is defined as expected
-        if (canvas !== undefined)
+        this.keybinds = {
+                pause: "p",             // pauses sim
+                step: " ",              // steps sim once
+                grabCanvas: "o",        // toggle left click between grabbing canvas and drawing cells
+                drawSpecificState: "i", // toggles drawing mode between cycle and set to a specific state
+        };
+
+        // state variables
+        this.eventsDidAttach = false;
+
+        this.mouse_grabbing = false;
+        this.grabCanvas = true;
+    }
+
+    ReInitialize(render, viewer)
+    {
+        this.render = render;
+        this.viewer = viewer;
+    }
+        
+    // attaches all events to the given canvas
+    attachEvents(canvas, attachKey = false, attachMouse = true)
+    {
+        // skips if events have already been attached
+        if (this.eventsDidAttach)
         {
-            UserInput.attachEvents(canvas);
+            return;
+        }
+        else
+        {
+            this.eventsDidAttach = true;
+        }
+
+        // attaches requested events
+        if (attachMouse)
+        {
+            this.attachMouseEvent(canvas);
+        }
+        
+        if (attachKey)
+        {
+            this.attachKeyEvents();
         }
     }
 
-    // attaches all events to the given canvas
-    static attachEvents(canvas)
+    // attaches all mouses events
+    attachMouseEvent(canvas)
     {
-        // adds mouse events
+        // moves canvas or draws cells
         canvas.onmousemove = function (event)
         {
-            UserInput.mouseMove(event);
-        };
+            this.mouseMove(event);
+        }.bind(this);
 
-        canvas.onmouseup = function (event)
-        {
-            UserInput.mouseUp_left(event);
-        };
-
+        // grabs canvas or nothing
         canvas.onmousedown = function (event)
         {
-            if (event.button === 0)
+            if(this.grabCanvas)
             {
-                UserInput.mouseDown_left(event);
+                this.grabGrid();
             }
-        };
-
+            else{
+                this.startDrawing(event);
+            }
+        }.bind(this);
+        
+        // releases canvas or toggles cell
+        canvas.onmouseup = function (event)
+        {
+            if (this.grabCanvas)
+            {
+                this.releaseGrid();
+            }
+            else
+            {
+                this.toggleCellHandler(event);
+            }
+        }.bind(this);
+        
+        // releases canvas and stops drawing
         canvas.onmouseleave = function (event)
         {
-            UserInput.mouseUp_left(event);
-            UserInput.viewer.needDraw = true;
-            UserInput.viewer.drawing = false;
-        };
+            this.releaseGrid();
+            this.stopDrawing();
+            this.disableCursorStyle();
+        }.bind(this);
         
+        // enables cursor styling
+        canvas.onmouseenter = function (event) {
+            this.enableCursorStyle();
+        }.bind(this);
+        
+        // zooms
         canvas.onwheel = function (event)
         {
-            if (event.button === 0)
-            {
-                UserInput.mouseScroll(event);
-            }
-        };
+            this.mouseScrollHandler(event);
+        }.bind(this);
+    }
 
-        canvas.oncontextmenu = function (event) {
-            event.preventDefault();
-            UserInput.mouseClick_right(event);
-        };
-
-        document.onkeydown = function (event) {
-            if (event.key === " ")
+    // attaches all keyboard events
+    attachKeyEvents()
+    {
+        document.onkeyup = function (event) {
+            if (event.key === this.keybinds.step)
             {
-                UserInput.spaceDown(event);
+                this.singleStep();
             }
-            else if (event.key === "p" && !event.repeat)
+            else if (event.key === this.keybinds.pause && !event.repeat)
             {
-                UserInput.pDown(event);
+                this.pauseToggle();
             }
-        }
+            else if (event.key === this.keybinds.grabCanvas && !event.repeat)
+            {
+                this.grabCanvasToggle();
+            }
+            else if (event.key === this.keybinds.drawSpecificState && !event.repeat)
+            {
+                this.drawSpecificStateToggle();
+            }
+            else if (UserInput.NUMKEYS.includes(event.key))
+            {
+                this.setSpecificStateHandeler(event);
+            }
+            else if (event.key === "t")
+            {
+                console.log(this.render)
+            }
+        }.bind(this);
     }
 
     // moves the viewer by mouse delta on mousemove event
-    static mouseMove(e)
+    mouseMove(e)
     {
-        // tracks mouse position
-        UserInput.viewer.mousePos = new Vector(e.clientX, e.clientY);
-
-        // moves camera when the user is holding the canvas
-        if (e.buttons === 1 && UserInput.mouse_grabbing)
+        // grabs canvas to move it
+        if (this.grabCanvas && e.buttons === 1 && this.mouse_grabbing)
         {
-            UserInput.viewer.targetPos.add(new Vector(e.movementX, e.movementY));
-            UserInput.viewer.needDraw = true;
+            this.moveGridHandeler(e);
         }
-
+        
         // toggles cells states when the user holds left click 
-        if (e.buttons === 2)
+        else if (!this.grabCanvas && e.buttons === 1)
         {
-            var coord = new Vector(e.clientX, e.clientY);
-            coord = UserInput.viewer.screenToGrid(coord);
-
-            // catches cells that were skipped by the mousemove event
-            if (UserInput.viewer.coordsInLine.size() !== 0)
-            {
-                var lastCoord = UserInput.viewer.coordsInLine.get(UserInput.viewer.coordsInLine.size()-1);
-                var dif = Vector.abs(Vector.sub(coord, lastCoord));
-
-                // checks if there were cells missed
-                if ( dif.x > 1 || dif.y > 1)
-                {
-                    // gets a set of coords between the new coord and the previous coord
-                    var tweenerCoords = UserInput.lineGen(lastCoord, coord);
-                    
-                    tweenerCoords.forEach( (item) =>
-                    {
-                        UserInput.viewer.newCoords.add(item);
-                    });
-                }
-            }
-
-            UserInput.viewer.newCoords.add(coord);
-
-            UserInput.viewer.needDraw = true;
-            UserInput.viewer.drawing = true;
+            this.drawCellsHandeler(e);
         }
+    }
+
+    // wapper for this.moveGrid to process mouse event info
+    moveGridHandeler(e)
+    {
+        this.moveGrid(new Vector(e.movementX, e.movementY));
+    }
+
+    // moves viewer position by given movement vector
+    moveGrid(movement)
+    {
+        this.viewer.targetPos.add(new Vector(movement.x, movement.y));
+        this.render.needDraw = true;
     }
     
     // grabs canvas
-    static mouseDown_left(e)
+    grabGrid()
     {
-        UserInput.mouse_grabbing = true;
-        document.body.style.cursor = "grab";
+        this.mouse_grabbing = true;
     }
     
     // lets go of canvas
-    static mouseUp_left(e)
+    releaseGrid()
     {
-        UserInput.mouse_grabbing = false;
-        document.body.style.cursor = "default";
+        this.mouse_grabbing = false;
+    }
+
+    // this.zoom wrapper that processes mouse event info
+    mouseScrollHandler(e)
+    {
+        this.zoom(-e.deltaY / this.scrollDivider)
     }
     
     // zooms in and out
-    static mouseScroll(e)
+    zoom(inc)
     {
-        UserInput.viewer.addZoom(-e.deltaY / UserInput.scrollDivider)
-        UserInput.viewer.needDraw = true;
+        this.viewer.addZoom(inc)
+        this.render.needDraw = true;
+    }
+
+    // wrapper for this.drawCell() that processes mouse event info
+    drawCellsHandeler(e)
+    {
+        this.drawCells(new Vector(e.offsetX, e.offsetY));
+    }
+
+    // wrapper for this.startDrawing that processes mouse event info
+    startDrawingHandeler(e)
+    {
+        this.startDrawing(new Vector(e.clientX, e.clientY));
     }
     
-    // selects cell and pushs to list
-    static mouseClick_right(e)
+    // draws the first cell in a line
+    startDrawing(screenCoord)
     {
-        UserInput.viewer.newCoords.add(UserInput.viewer.screenToGrid(new Vector(e.clientX, e.clientY)));
-        UserInput.viewer.needDraw = true;
-        UserInput.viewer.drawing = false;
+        // this.render.lineCoordsAdd.add(this.viewer.screenToGrid(screenCoord));
+        this.render.needDraw = true;
+    }
+
+    // draws cells
+    drawCells(screenCoord)
+    {
+        // copies input and converts to grid space
+        var coord = new Vector(screenCoord.x, screenCoord.y);
+        coord = this.viewer.screenToGrid(coord);
+
+        // catches cells that were skipped by the mousemove event
+        if (this.render.lineCoordsDone.size() !== 0)
+        {
+            var lastCoord = this.render.lineCoordsDone.get(this.render.lineCoordsDone.size()-1);
+            var dif = Vector.abs(Vector.sub(coord, lastCoord));
+
+            // checks if there were cells missed
+            if ( dif.x > 1 || dif.y > 1)
+            {
+                // gets a set of coords between the new coord and the previous coord
+                var tweenerCoords = UserInput.lineGen(lastCoord, coord);
+                
+                tweenerCoords.forEach( (item) =>
+                {
+                    this.render.lineCoordsAdd.add(item);
+                });
+            }
+        }
+
+        this.render.lineCoordsAdd.add(coord);
+        this.render.needDraw = true;
+    }
+    
+    // stops drawing cells
+    stopDrawing()
+    {
+        this.render.lineCoordsDone = new NSet();
+        this.render.lineCoordsAdd = new NSet();
+    }
+
+    // this.toggleCell wrapper that processes mouse event info
+    toggleCellHandler(e)
+    {
+        this.toggleCell(new Vector(e.offsetX, e.offsetY));
+    }
+
+    // toggles given cell
+    toggleCell(screenCoords)
+    {
+        var gridCoord = this.viewer.screenToGrid(screenCoords);
+
+        // will draw something if nothing has been drawn while the mouse was down
+        if (this.render.lineCoordsDone.size() === 0)
+        {
+            if (this.render.configs.drawSpecificState)
+            {
+                this.render.configs.CellularAutomata.setCell(gridCoord, this.render.configs.drawState);
+            }
+            else
+            {
+                this.render.configs.CellularAutomata.cycleCell(gridCoord);
+            }
+
+            this.render.needDraw = true;
+        }
+
+        
+        this.stopDrawing();
+    }
+    
+    // steps the simulation once if it is paused or in the draw loop
+    singleStep()
+    {
+        this.render.step = true;
+    }
+    
+    // pauses simulation if in the simulation loop
+    pauseToggle() 
+    {
+        this.render.configs.paused = !this.render.configs.paused;
+    }
+
+    // switches left click between grabbing the canvas and drawing cells
+    grabCanvasToggle()
+    {
+        this.grabCanvas = !this.grabCanvas;
+        this.enableCursorStyle();
+    }
+
+    // toggles draw mode between cycle cell state and set to specific state
+    drawSpecificStateToggle()
+    {
+        this.render.configs.drawSpecificState = !this.render.configs.drawSpecificState;
+    }
+
+    // wrapper for this.setSpecificState that processes key event
+    setSpecificStateHandeler(event)
+    {
+        this.setSpecificState(event.key);
+    }
+
+    // sets specific draw state
+    setSpecificState(num)
+    {
+        this.render.setDrawState(Number(num));
+    }
+
+    // enables cursor styles
+    enableCursorStyle()
+    {
+        if (this.grabCanvas)
+        {
+            document.body.style.cursor = "grab";
+        }
+        else if (this.render.drawSpecificState)
+        {
+            document.body.style.cursor = "pointer";
+        }
+        else
+        {
+            document.body.style.cursor = "crossHair";
+        }
+    }
+
+    // disables cursor styles
+    disableCursorStyle()
+    {
+        document.body.style.cursor = "initial"
     }
 
     // returns a set of integer coords between the given points using Bresenham's line algo from wikipedia
@@ -237,14 +432,6 @@ class UserInput
 
         return coords;
     }
-
-    static spaceDown(e)
-    {
-        UserInput.viewer.step = true;
-    }
-
-    static pDown(e)
-    {
-        UserInput.viewer.paused = !UserInput.viewer.paused;
-    }
 }
+
+UserInput.NUMKEYS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];

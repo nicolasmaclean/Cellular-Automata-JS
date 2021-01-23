@@ -2,11 +2,10 @@
 
 class CellularAutomata
 {
-    constructor()
+    constructor(configs)
     {
-        this.grid = new Grid();
-        this.generation = 0;
-        this.ruleset = [ConwayGOL];
+        this.grid = new Grid(configs.cellColors);
+        this.configs = configs;
     }
 
     // performs one step of the simulation
@@ -22,17 +21,15 @@ class CellularAutomata
             
             // keeps track of neighbors that will need to be checked
             liveNeighbors.forEach(val => {
-                if(!this.grid.hasCell(val)) // this is still messed up
+                if(!this.grid.hasCell(val))
                 {
                     cellsToCheck.add(Grid.tostring(val));
                 }
             });
             
-            // performs conway's rules to the current cell
-            var neighbors = this.grid.getLiveNeighbors(key);
-            var nVal = ConwayGOL(neighbors, true); // TODO: get its value if this is not game of life, instead of a hardcoded true
-            
-            if(nVal !== Cell.defaultValue())
+            var nVal = this.applyRules(key);
+
+            if(nVal !== 0)
             {
                 nMap.set(Grid.tostring(key), nVal);
             }
@@ -42,19 +39,39 @@ class CellularAutomata
         // iterates through the neighbors stored in last foreach loop
         cellsToCheck.forEach(str_key => {
             var key = Grid.unstring(str_key);
-            var neighbors = this.grid.getLiveNeighbors(key);
-            // value = this.grid.getCell(key);
 
-            var nVal = ConwayGOL(neighbors, false); // TODO: use value if this is not game of life
-            if(nVal)
+            var nVal = this.applyRules(key);
+
+            if(nVal !== 0)
+            {
                 nMap.set(Grid.tostring(key), nVal);
+            }
         });
 
         this.grid.setNewMap(nMap);
         this.grid.pruneDefaultValues();
-        this.generation++;
+        this.configs.generation++;
     }
 
+    applyRules(key)
+    {
+        // applies this.rules to each current live cell
+        var neighbors = this.grid.getNeighborsValues(key);
+        var val = this.getCell(key);
+
+        for (let rule in this.configs.rules)
+        {
+            var n = this.configs.rules[rule](neighbors, val) 
+            if (n[0])
+            {
+                return n[1];
+            }
+        }
+        
+        return 0;
+    }
+
+    // wrapper functions for sparce matrix access
     getCell(coord)
     {
         return this.grid.getCell(coord);
@@ -63,5 +80,10 @@ class CellularAutomata
     setCell(coord, val)
     {
         this.grid.setCell(coord, val);
+    }
+
+    cycleCell(coord)
+    {
+        this.grid.cycleCell(coord);
     }
 }

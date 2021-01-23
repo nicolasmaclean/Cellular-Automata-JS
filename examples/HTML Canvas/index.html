@@ -3,77 +3,40 @@
 <head>
     <title>Conway's Game of Life by Nick</title>
 
-    <!-- styling -->
-    <style>
-        *
-        {
-            font-family: 'Roboto', sans-serif;
-        }
-
-        body
-        {
-            margin: 5;
-            /* overflow: hidden; */
-        }
-
-        p1
-        {
-            line-height: 175%;
-        }
-
-        input[type="text"]
-        {
-            line-height: 150%;
-            font-size: medium;
-            border-style: hidden;
-            background-color: aqua;
-            /* width: 0; */
-            
-        }
-    </style>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <canvas id="glCanvas" width="500" height="500">
-        Sorry. HTML Canvas is not supported in you browser.
-    </canvas>
-
-    <section id="info" hidden>
-        <h1> Info </h1>
-
-        <p1> Generation: </p1>
-        <p1 id="generation"> n/a </p1>
-        <br/>
-
-        <p1> Coordinate: </p1>
-        <p1 id="coord"> n/a </p1>
-        <br/>
-    </section>
-
-    <section id="debug" hidden>
-        <h1> Debugging Info </h1>
-
-        <p1> Drawing a Line: </p1>
-        <p1 id="drawing"> n/a </p1>
-        <br/>
-
-        <p1> Coords in Line: </p1>
-        <p1 id="drawingLine"> n/a </p1>
-        <br/>
-    </section>
+    <div class="CA">
+        <canvas id="glCanvas" width="700" height="600" class="noFlex">
+            Sorry. HTML Canvas is not supported in you browser.
+        </canvas>
+        
+        <section id="info">
+            <h1 class="CATitle"> not loaded </h1>
+            
+            <p> Generation: <span class="CAGeneration"> not loaded </span> </p>
+            
+            <h1> Rules </h1>
+            <div class="CARules">
+                <p> not loaded </p>
+            </div>
+            <br/>
+        </section>
+    </div>
 </body>
 
 <!-- javascript files -->
-<script type="text/javascript" src="../../src/GridDriver.js"></script>
 <script type="text/javascript" src="../../src/CARender.js"></script>
-<script type="text/javascript" src="../../src/Viewer.js"></script>
-<script type="text/javascript" src="../../src/Cell.js"></script>
 <script type="text/javascript" src="../../src/CellularAutomata.js"></script>
 <script type="text/javascript" src="../../src/Grid.js"></script>
-<script type="text/javascript" src="../../src/Rules.js"></script>
+<script type="text/javascript" src="../../src/GridDriver.js"></script>
+<script type="text/javascript" src="../../src/JSONConverter.js"></script>
+<script type="text/javascript" src="../../src/NSet.js"></script>
 <script type="text/javascript" src="../../src/UserInput.js"></script>
 <script type="text/javascript" src="../../src/Vector.js"></script>
-<script type="text/javascript" src="../../src/NSet.js"></script>
+<script type="text/javascript" src="../../src/Viewer.js"></script>
 
 </html>

@@ -1,36 +1,29 @@
 // stores info about the user's position in grid/screen space
+
 class Viewer
 {
-    constructor(init_windowSize, init_pos = new Vector(0, 0), init_zoom = 1, init_lerpFactor = .2, init_maxZoom = 9, init_minZoom = .8)
+    constructor(configs)
     {
+        this.configs = configs;
+
         // data
         this.pos = new Vector(0, 0); // move to input pos instantly 
         this.targetPos = this.pos.copy();
-
-        this.zoom = init_zoom;
-        this.maxZoom = init_maxZoom;
-        this.minZoom = init_minZoom;
-        this.windowSize = init_windowSize;
-
+        
+        this.zoom = configs.zoom;
+        this.maxZoom = configs.maxZoom;
+        this.minZoom = configs.minZoom;
+        
         // config
-        this.lerpFactor = init_lerpFactor;
+        this.lerpFactor = .2;
         this.defaultCellSize = 10;
         this.cellSize = this.defaultCellSize * this.zoom;
         
-        // state tracking
-        this.needDraw = false; // move this into user input
-        this.drawing = false;
-        this.step = false;
-        this.paused = false;
-        
-        // user input
-        this.newCoords = new NSet();
-        this.coordsInLine = new NSet();
-        this.mousePos = new Vector(0, 0);
-
-        this.moveToPosInstant(init_pos);
+        // moves to given position
+        this.moveToPosInstant(configs.position);
     }
 
+    // TODO: this sucks ass. Fix it.
     // sets the zoom variable. updates viewer position and cellsize accordingly
     setZoom(z)
     {
@@ -53,11 +46,8 @@ class Viewer
             zoomP = (zoomP - this.zoom) / this.zoom;
         }
 
-        // offset viewer position based on mouse position
-        var offsetP = this.mousePos;
-        offsetP.div(this.windowSize);
-
-        this.targetPos.add(new Vector(this.windowSize.x*zoomP*offsetP.x, this.windowSize.y*zoomP*offsetP.y));
+        // offset so zoom is from the middle, not the top right right of the canvas
+        this.targetPos.add(new Vector(this.configs.windowSize.x*zoomP/4, this.configs.windowSize.y*zoomP/4));
 
         this.cellSize = this.defaultCellSize * this.zoom;
     }
@@ -71,7 +61,6 @@ class Viewer
     screenToGrid(coord)
     {
         var gridCoord = Vector.sub(coord, this.pos);
-        gridCoord.sub_int(this.cellSize/2);
         gridCoord.div_int(this.cellSize);
         gridCoord = Vector.floor(gridCoord);
 
@@ -115,8 +104,9 @@ class Viewer
     // instant move viewer.pos to given grid coord
     moveToPosInstant(vector)
     {
-        var nPos = this.translateCoordToCenterScreen(vector);
-        nPos = this.gridToScreen(nPos);
+        // var nPos = this.translateCoordToCenterScreen(vector);
+        // var nPos = this.gridToScreen(vector);
+        var nPos = vector;
         this.targetPos = nPos;
         this.pos = nPos;
     }
@@ -124,13 +114,20 @@ class Viewer
     // adds offset to given grid coord so it is in the center of the screen
     translateCoordToCenterScreen(vector)
     {
-        var v = Vector.div_int(this.windowSize, this.cellSize);
+        var v = Vector.div_int(this.configs.windowSize, this.cellSize);
         v.div_int(2);
         return Vector.add(vector, v);
     }
 
     Update()
     {
-        this.pos.lerp(this.targetPos, this.lerpFactor);
+        if (Vector.distanceSQ(this.pos, this.targetPos) < 1)
+        {
+            this.pos = this.targetPos;
+        }
+        else
+        {
+            this.pos.lerp(this.targetPos, this.lerpFactor);
+        }
     }
 }

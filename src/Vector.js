@@ -67,11 +67,6 @@ class Vector
         return this.x === value && this.y === value;
     }
 
-    equals(other_vector)
-    {
-        return this.x === other_vector.x && this.y === other_vector.y;
-    }
-
     floor()
     {
         this.x = Math.floor(this.x);
@@ -178,6 +173,19 @@ class Vector
         l.mult_int(factor);
         l.add(vector);
         return l;
+    }
+
+    static distance(vector, other_vector)
+    {
+        var diff = Vector.sub(vector, other_vector);
+        var dSQ = diff.x*diff.x + diff.y*diff.y;
+        return Math.sqrt(dSQ);
+    }
+
+    static distanceSQ(vector, other_vector)
+    {
+        var diff = Vector.sub(vector, other_vector);
+        return diff.x*diff.x + diff.y*diff.y;
     }
 
     toString()

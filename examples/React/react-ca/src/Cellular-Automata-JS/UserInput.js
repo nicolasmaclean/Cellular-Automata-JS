@@ -330,7 +330,7 @@ class UserInput
         }
         else
         {
-            document.body.style.cursor = "url('./drawCursor.png'), crossHair";
+            document.body.style.cursor = "crossHair";
         }
     }
 
