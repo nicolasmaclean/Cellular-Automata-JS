@@ -2,9 +2,9 @@
 
 A library for working with Cellular Automata in Javascript. Code is extremely modular allowing easy customizations to simulation rules and most aspects of the rendering process. This library is made with pure JavaScript, so no third party code is needed to use this.
 
-# Usage
+![React Example](WW_flipflop.png)
 
-## Getting Started
+# Getting Started
 
 There are more configuration options, but this example will overwrite the default canvas size of 800x700 pixels. Additionally, configuration options left undefined will be automatically filled out with pre-determined default values.
 
