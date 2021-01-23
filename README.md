@@ -1,6 +1,8 @@
 # Cellular Automata JS
 
-A library for working with Cellular Automata in Javascript. Code is extremely modular allowing easy customizations to simulation rules and most aspects of the rendering process. This library is made with pure JavaScript, so no third party code is needed to use this.
+A library for working with Cellular Automata on an infinite plane in Javascript. Code is extremely modular allowing easy customizations to simulation rules and most aspects of the rendering process. This library is made with pure JavaScript, so no third party code is needed to use this.
+
+Additionally, there are 2 examples included: one demonstarting how to use the library with pure HTML and JavaScript and the other encapsulates the library into a React Components. The React example can be seen on this repository's [GitHub Page](https://nicolasmaclean.github.io/Cellular-Automata-JS/)
 
 ![React Example](WW_flipflop.png)
 
